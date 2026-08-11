@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Jangan commit secret
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.preview.local
+
+*.log
