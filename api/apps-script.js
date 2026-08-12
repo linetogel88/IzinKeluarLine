@@ -19,7 +19,10 @@ const ALLOWED_ACTIONS =
     'adminTambahLogin',
     'adminSetJabatan',
     'adminSetBatasHarian',
-    'adminSetDurasi'
+    'adminSetDurasi',
+    'adminSetOverride',
+    'adminHapusOverride',
+    'adminAktifkanArsip'
   ]);
 
 
