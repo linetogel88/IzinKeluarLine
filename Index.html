@@ -1202,6 +1202,92 @@
       background: var(--red);
     }
 
+
+    /* STATUS SHIFT LANGSUNG */
+    .shift-duty-card {
+      margin-top: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(72, 117, 210, .22);
+      border-radius: 12px;
+      background: rgba(5, 24, 57, .62);
+    }
+
+    .shift-duty-main { min-width: 0; }
+    .shift-duty-label {
+      margin-bottom: 4px;
+      color: #6f87b4;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .10em;
+    }
+    .shift-duty-text { color: #f7f9ff; font-size: 14px; font-weight: 900; }
+    .shift-duty-subline { margin-top: 3px; color: #8298bf; font-size: 10px; font-weight: 700; }
+    .shift-duty-badge {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid rgba(88, 255, 192, .28);
+      border-radius: 999px;
+      color: #68ffc5;
+      background: rgba(31, 142, 104, .12);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+    .shift-duty-badge.waiting { color:#ffca6b; border-color:rgba(255,193,86,.28); background:rgba(142,89,18,.13); }
+    .shift-duty-badge.problem { color:#ff819d; border-color:rgba(255,102,136,.28); background:rgba(145,33,61,.13); }
+    .shift-duty-badge.override { color:#bd9cff; border-color:rgba(153,111,255,.35); background:rgba(92,55,177,.16); }
+
+    /* HEALTH CHECK ADMIN */
+    .system-health-grid {
+      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .system-health-card {
+      min-height: 92px;
+      padding: 14px 16px;
+      border: 1px solid rgba(63, 111, 206, .22);
+      border-radius: 14px;
+      background: rgba(5, 23, 55, .68);
+    }
+    .system-health-card small { display:block; margin-bottom:7px; color:#7188b4; font-size:9px; font-weight:900; letter-spacing:.08em; }
+    .system-health-value { color:#f4f7ff; font-size:15px; font-weight:900; }
+    .system-health-value.ok { color:#5dffc0; }
+    .system-health-value.bad { color:#ff7897; }
+    .system-health-sub { margin-top:5px; color:#7890bb; font-size:10px; font-weight:700; line-height:1.4; }
+    .health-mini-btn {
+      margin-top: 8px;
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid rgba(81, 109, 255, .28);
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      background: rgba(37, 77, 172, .22);
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 900;
+    }
+    .health-mini-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+    /* RIWAYAT SHIFT AKTIF */
+    .shift-history-panel { margin-bottom:14px; border-color:rgba(95,90,255,.27); box-shadow:0 0 28px rgba(64,77,255,.06); }
+    .shift-history-summary { margin:14px 0 16px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .shift-history-stat { padding:10px; border:1px solid rgba(61,105,195,.18); border-radius:10px; background:rgba(4,22,53,.55); text-align:center; }
+    .shift-history-stat span { display:block; color:#7189b5; font-size:9px; font-weight:800; }
+    .shift-history-stat strong { display:block; margin-top:4px; color:#f5f7ff; font-size:18px; font-weight:900; }
+
+    @media (max-width: 760px) {
+      .system-health-grid { grid-template-columns:1fr; }
+      .shift-history-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+
     .status-subline {
       margin-top: 9px;
       color: var(--muted);
@@ -3641,6 +3727,15 @@
               <div id="permissionStatusSubline" class="status-subline">
                 Tekan START saat akan keluar.
               </div>
+
+              <div class="shift-duty-card">
+                <div class="shift-duty-main">
+                  <div class="shift-duty-label">STATUS SHIFT</div>
+                  <div id="shiftDutyText" class="shift-duty-text">Memuat status...</div>
+                  <div id="shiftDutySubline" class="shift-duty-subline">-</div>
+                </div>
+                <span id="shiftDutyBadge" class="shift-duty-badge waiting">MEMUAT</span>
+              </div>
             </div>
 
             <div class="permission-info-grid">
@@ -3824,9 +3919,9 @@
             </svg>
           </div>
 
-          <div class="metric-pretitle">Anda sudah keluar sebanyak</div>
+          <div class="metric-pretitle">Jatah izin Shift Aktif</div>
           <div id="ownTodayMetricNumber" class="metric-number">0</div>
-          <div class="metric-title">kali keluar shift ini</div>
+          <div class="metric-title">izin telah digunakan</div>
           <div id="ownShiftMetricDesc" class="metric-desc">Total izin pada shift aktif.</div>
 
           <div class="metric-divider"></div>
@@ -3859,6 +3954,32 @@
           <strong id="historyTodaySummaryMine">0</strong>
         </div>
       </div>
+
+      <section class="panel panel-pad shift-history-panel">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0;font-size:21px">Riwayat Shift Aktif</h2>
+            <p id="shiftHistoryDescription" style="margin:5px 0 0;color:var(--muted);font-size:13px">Memuat shift aktif...</p>
+          </div>
+          <div class="toolbar-right">
+            <input id="shiftHistorySearch" class="filter-input" type="text" placeholder="Cari nama / jabatan..." oninput="renderShiftHistoryTable()">
+          </div>
+        </div>
+
+        <div class="shift-history-summary">
+          <div class="shift-history-stat"><span>TOTAL SHIFT</span><strong id="shiftSummaryTotal">0</strong></div>
+          <div class="shift-history-stat"><span>AMAN</span><strong id="shiftSummarySafe" style="color:#58ffc0">0</strong></div>
+          <div class="shift-history-stat"><span>TELAT</span><strong id="shiftSummaryLate" style="color:#ff7897">0</strong></div>
+          <div class="shift-history-stat"><span>IZIN ANDA</span><strong id="shiftSummaryMine">0</strong></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>NAMA</th><th>STATUS</th><th>KELUAR</th><th>BATAS</th><th>MASUK</th><th>DURASI</th><th>HASIL</th></tr></thead>
+            <tbody id="shiftHistoryTableBody"></tbody>
+          </table>
+        </div>
+      </section>
 
       <div class="history-jump-wrap">
         <button
@@ -4014,6 +4135,25 @@
         </div>
       </div>
 
+      <div class="system-health-grid">
+        <div class="system-health-card">
+          <small>JADWAL SHIFT</small>
+          <div id="scheduleHealthValue" class="system-health-value">MEMUAT</div>
+          <div id="scheduleHealthSub" class="system-health-sub">Memeriksa sumber jadwal...</div>
+        </div>
+        <div class="system-health-card">
+          <small>SHIFT AKTIF</small>
+          <div id="adminShiftHealthValue" class="system-health-value">-</div>
+          <div id="adminShiftHealthSub" class="system-health-sub">-</div>
+        </div>
+        <div class="system-health-card">
+          <small>ARSIP OTOMATIS</small>
+          <div id="archiveHealthValue" class="system-health-value">-</div>
+          <div id="archiveHealthSub" class="system-health-sub">Arsip izin bulan lama.</div>
+          <button id="archiveSetupButton" class="health-mini-btn" type="button" onclick="adminEnableArchive()">AKTIFKAN ARSIP</button>
+        </div>
+      </div>
+
       <div id="adminSettingsMessage" class="message"></div>
 
       <section class="panel panel-pad admin-settings-panel">
@@ -4128,6 +4268,22 @@
             >
               SIMPAN
             </button>
+          </article>
+
+          <article class="admin-action-card">
+            <div class="admin-action-head">
+              <div class="admin-action-icon">⚡</div>
+              <div>
+                <h3>Override Darurat Shift</h3>
+                <p>Izinkan staff bertugas pada shift aktif meskipun jadwal normalnya belum aktif, OFFDAY, atau CUTI.</p>
+              </div>
+            </div>
+            <label class="admin-field-label">Staff</label>
+            <select id="adminOverrideUserSelect" class="admin-control"></select>
+            <button class="admin-save-btn" type="button" onclick="adminGrantOverride()">IZINKAN SHIFT INI</button>
+            <label class="admin-field-label" style="margin-top:12px">Override aktif</label>
+            <select id="adminOverrideActiveSelect" class="admin-control"><option value="">Belum ada override aktif</option></select>
+            <button class="admin-save-btn danger" type="button" onclick="adminRemoveOverride()">HAPUS OVERRIDE</button>
           </article>
 
           <article class="admin-action-card">
@@ -4278,7 +4434,7 @@
               id="newPasswordInput"
               type="password"
               autocomplete="new-password"
-              placeholder="Minimal 4 karakter"
+              placeholder="Minimal 6 karakter"
             >
             <button
               type="button"
@@ -4421,6 +4577,17 @@
     let refreshInterval = null;
     let clockInterval = null;
     let isProcessing = false;
+    let permissionActionInFlight = false;
+
+    function createRequestId(prefix) {
+      const safePrefix = String(prefix || 'REQ').toUpperCase();
+
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return safePrefix + '-' + window.crypto.randomUUID();
+      }
+
+      return safePrefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12);
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       document
@@ -4796,9 +4963,9 @@
         return;
       }
 
-      if (passwordBaru.length < 4) {
+      if (passwordBaru.length < 6) {
         setPasswordMessage(
-          'Password baru minimal 4 karakter.',
+          'Password baru minimal 6 karakter.',
           'error'
         );
         return;
@@ -5286,74 +5453,62 @@
 
 
     function startPermission() {
-      if (!currentUser || hasMyActivePermission() || isProcessing) {
+      const current = dashboardData && dashboardData.current ? dashboardData.current : {};
+
+      if (!currentUser || hasMyActivePermission() || isProcessing || permissionActionInFlight) return;
+
+      if (!current.canStartBySchedule) {
+        let message = 'Staff belum bertugas.';
+        if (current.dutyCode === 'OFFDAY') message = 'Staff sedang offday.';
+        else if (current.dutyCode === 'CUTI') message = 'Staff sedang cuti.';
+        else if (current.dutyCode === 'SCHEDULE_UNAVAILABLE') message = 'Jadwal shift belum dapat dibaca. Silakan coba lagi beberapa saat.';
+        showStatusPopup(message);
         return;
       }
 
+      permissionActionInFlight = true;
+      const requestId = createRequestId('START');
       setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
           try {
-            showMessage(
-              'appMessage',
-              result.message,
-              result.type || (result.ok === false ? 'warning' : 'success')
-            );
-
+            showMessage('appMessage', result.message, result.type || (result.ok === false ? 'warning' : 'success'));
             renderDashboard(result.dashboard);
 
             if (result.ok !== false) {
-              const ownActive =
-                result.dashboard &&
-                result.dashboard.current
-                  ? result.dashboard.current.ownActive
-                  : null;
-
-              showActionPopup(
-                'start',
-                {
-                  jamKeluar:
-                    ownActive
-                      ? ownActive.jamKeluar
-                      : '-',
-
-                  batasKembali:
-                    ownActive
-                      ? ownActive.batasKembali
-                      : '-'
-                }
-              );
+              const ownActive = result.dashboard && result.dashboard.current ? result.dashboard.current.ownActive : null;
+              showActionPopup('start', {
+                jamKeluar: ownActive ? ownActive.jamKeluar : '-',
+                batasKembali: ownActive ? ownActive.batasKembali : '-'
+              });
             }
           } catch (error) {
-            console.error(
-              'Gagal memperbarui dashboard:',
-              error
-            );
-
-            showMessage(
-              'appMessage',
-              'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.',
-              'warning'
-            );
+            console.error('Gagal memperbarui dashboard:', error);
+            showMessage('appMessage', 'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.', 'warning');
           } finally {
+            permissionActionInFlight = false;
             setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
+          permissionActionInFlight = false;
           handleServerError(error, 'appMessage');
         })
         .mulaiIzin({
           username: credentials.username,
-          password: credentials.password
+          password: credentials.password,
+          requestId: requestId
         });
     }
 
     function finishPermission() {
-      if (!currentUser || !hasMyActivePermission() || isProcessing) {
+      if (!currentUser || !hasMyActivePermission() || isProcessing || permissionActionInFlight) {
         return;
       }
 
+      permissionActionInFlight = true;
+      const requestId = createRequestId('END');
       setLoading(true);
 
       google.script.run
@@ -5405,15 +5560,18 @@
               'warning'
             );
           } finally {
+            permissionActionInFlight = false;
             setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
+          permissionActionInFlight = false;
           handleServerError(error, 'appMessage');
         })
         .sudahKembali({
           username: credentials.username,
-          password: credentials.password
+          password: credentials.password,
+          requestId: requestId
         });
     }
 
@@ -5476,10 +5634,12 @@
       dashboardData = data || {
         active: [],
         today: [],
+        shift: [],
         yesterday: [],
         settings: [],
         stats: {},
         todayStats: {},
+        shiftStats: {},
         yesterdayStats: {},
         current: {},
         activeByStatus: []
@@ -5492,7 +5652,9 @@
       updateMenuAccess();
       renderProfile();
       renderMyPermission();
+      renderShiftDutyStatus();
       renderMetricCards();
+      renderShiftHistorySection();
       renderHistoryTodaySection();
       renderYesterdayHistorySection();
 
@@ -5662,59 +5824,127 @@
       updateActionButtons();
     }
 
-    function renderMetricCards() {
-      /*
-       * Jatah izin sekarang dihitung PER SHIFT:
-       * Pagi  08:00 - 20:00
-       * Malam 20:00 - 08:00
-       */
-      const ownTodayMetric =
-        document.getElementById(
-          'ownTodayMetricNumber'
-        );
+    function renderShiftDutyStatus() {
+      const current = dashboardData.current || {};
+      const badge = document.getElementById('shiftDutyBadge');
+      const text = document.getElementById('shiftDutyText');
+      const subline = document.getElementById('shiftDutySubline');
+      if (!badge || !text || !subline) return;
 
-      const current =
-        dashboardData.current || {};
+      const code = String(current.dutyCode || '').toUpperCase();
+      const shiftName = current.shiftDisplayName || '-';
+      const shiftHours = current.shiftHours || '-';
+      badge.className = 'shift-duty-badge';
 
-      if (ownTodayMetric) {
-        ownTodayMetric.textContent =
-          Number(
-            current.ownShiftCount || 0
-          );
+      if (current.overrideActive) {
+        badge.classList.add('override');
+        badge.textContent = 'OVERRIDE AKTIF';
+        text.textContent = 'Shift ' + shiftName + ' • ' + shiftHours + ' WIB';
+        subline.textContent = 'Akses darurat diberikan oleh CS LINE sampai akhir shift.';
+        return;
       }
 
-      const desc =
-        document.getElementById(
-          'ownShiftMetricDesc'
-        );
+      if (code === 'ON_DUTY') {
+        badge.textContent = 'SEDANG BERTUGAS';
+        text.textContent = 'Shift ' + shiftName + ' • ' + shiftHours + ' WIB';
+        subline.textContent = 'Jadwal Anda aktif. START izin tersedia sesuai jatah shift.';
+        return;
+      }
 
+      if (code === 'SCHEDULE_UNAVAILABLE') {
+        badge.classList.add('problem');
+        badge.textContent = 'JADWAL ERROR';
+        text.textContent = 'Jadwal Shift tidak dapat dibaca';
+        subline.textContent = 'START sementara dikunci sampai sumber jadwal kembali normal.';
+        return;
+      }
+
+      badge.classList.add(code === 'OFFDAY' || code === 'CUTI' ? 'problem' : 'waiting');
+
+      if (code === 'OFFDAY') {
+        badge.textContent = 'OFFDAY';
+        text.textContent = 'Staff sedang offday';
+        subline.textContent = 'START izin tidak tersedia tanpa override CS LINE.';
+      } else if (code === 'CUTI') {
+        badge.textContent = 'CUTI';
+        text.textContent = 'Staff sedang cuti';
+        subline.textContent = 'START izin tidak tersedia tanpa override CS LINE.';
+      } else {
+        badge.textContent = 'BELUM BERTUGAS';
+        text.textContent = current.scheduledShift && current.scheduledShift !== '-' ? 'Jadwal Anda: ' + current.scheduledShift : 'Staff belum bertugas';
+        subline.textContent = 'START otomatis aktif ketika jadwal shift Anda mulai.';
+      }
+    }
+
+    function renderShiftHistorySection() {
+      const stats = dashboardData.shiftStats || {};
+      const current = dashboardData.current || {};
+      const setText = function (id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+
+      setText('shiftSummaryTotal', Number(stats.total || 0));
+      setText('shiftSummarySafe', Number(stats.aman || 0));
+      setText('shiftSummaryLate', Number(stats.telat || 0));
+      setText('shiftSummaryMine', Number(stats.milikSaya || 0));
+
+      const desc = document.getElementById('shiftHistoryDescription');
       if (desc) {
-        const shiftName =
-          current.shiftDisplayName || '-';
+        desc.textContent = 'Shift ' + (current.shiftDisplayName || '-') + ' • ' + (current.shiftHours || '-') + ' WIB • Jadwal ' + (current.shiftScheduleDate || '-');
+      }
 
-        const shiftHours =
-          current.shiftHours || '-';
+      renderShiftHistoryTable();
+    }
 
-        const max =
-          Number(
-            current.batasShift ||
-            current.batasHarian ||
-            0
-          );
+    function renderShiftHistoryTable() {
+      const body = document.getElementById('shiftHistoryTableBody');
+      if (!body) return;
 
-        desc.textContent =
-          'Shift ' +
-          shiftName +
-          ' • ' +
-          shiftHours +
-          ' WIB • ' +
-          (
-            max > 0
-              ? 'Maksimal ' +
-                max +
-                ' kali'
-              : 'Tanpa batas'
-          );
+      const search = document.getElementById('shiftHistorySearch');
+      const query = String(search ? search.value : '').trim().toLowerCase();
+      const rows = (dashboardData.shift || []).filter(function (row) {
+        if (!query) return true;
+        return String(row.nama || '').toLowerCase().includes(query) ||
+          String(row.status || '').toLowerCase().includes(query) ||
+          String(row.jamKeluar || '').toLowerCase().includes(query) ||
+          String(row.hasil || '').toLowerCase().includes(query);
+      });
+
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="7" style="padding:30px;color:var(--muted)">Belum ada izin pada shift aktif.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = rows.map(function (row) {
+        return `
+          <tr>
+            <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
+            <td>${escapeHtml(row.status)}</td>
+            <td>${escapeHtml(row.jamKeluar)}</td>
+            <td>${escapeHtml(row.batasKembali)}</td>
+            <td>${escapeHtml(row.jamKembali)}</td>
+            <td>${escapeHtml(row.durasi)}</td>
+            <td>${resultBadge(row.hasil)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderMetricCards() {
+      const metric = document.getElementById('ownTodayMetricNumber');
+      const current = dashboardData.current || {};
+      const used = Number(current.ownShiftCount || 0);
+      const max = Number(current.batasShift || current.batasHarian || 0);
+
+      if (metric) {
+        metric.textContent = max > 0 ? used + ' / ' + max : used + ' / ∞';
+      }
+
+      const desc = document.getElementById('ownShiftMetricDesc');
+      if (desc) {
+        const remaining = max > 0 ? Math.max(0, max - used) : null;
+        desc.textContent = 'Shift ' + (current.shiftDisplayName || '-') + ' • ' + (current.shiftHours || '-') + ' WIB • ' + (max > 0 ? 'Sisa ' + remaining + ' kali' : 'Tanpa batas');
       }
     }
 
@@ -5894,7 +6124,10 @@
       const admin =
         dashboardData.admin || {
           staff: [],
-          todayPermissions: []
+          todayPermissions: [],
+          activeOverrides: [],
+          scheduleHealth: {},
+          archive: {}
         };
 
       const roleOptions =
@@ -5942,6 +6175,51 @@
         roleUserSelect.innerHTML =
           staffOptions ||
           '<option value="">Belum ada staff</option>';
+      }
+
+      const overrideUserSelect = document.getElementById('adminOverrideUserSelect');
+      if (overrideUserSelect) {
+        overrideUserSelect.innerHTML = staffOptions || '<option value="">Belum ada staff</option>';
+      }
+
+      const activeOverrideOptions = (admin.activeOverrides || []).map(function (row) {
+        return '<option value="' + Number(row.rowNumber) + '" data-username="' + escapeHtml(row.username) + '">' + escapeHtml(getDisplayName(row.nama)) + ' — ' + escapeHtml(row.shift) + ' — sampai ' + escapeHtml(row.berakhir) + '</option>';
+      }).join('');
+
+      const overrideActiveSelect = document.getElementById('adminOverrideActiveSelect');
+      if (overrideActiveSelect) {
+        overrideActiveSelect.innerHTML = '<option value="">Belum ada override aktif</option>' + activeOverrideOptions;
+      }
+
+      const health = admin.scheduleHealth || {};
+      const scheduleHealthValue = document.getElementById('scheduleHealthValue');
+      const scheduleHealthSub = document.getElementById('scheduleHealthSub');
+
+      if (scheduleHealthValue) {
+        scheduleHealthValue.textContent = health.ok ? '● TERHUBUNG' : '● BERMASALAH';
+        scheduleHealthValue.className = 'system-health-value ' + (health.ok ? 'ok' : 'bad');
+      }
+
+      if (scheduleHealthSub) {
+        scheduleHealthSub.textContent = health.ok ? 'Cek ' + (health.checkedAt || '-') + ' • ' + Number(health.staffCount || 0) + ' staff terbaca' : (health.message || 'Sumber Jadwal Shift tidak dapat dibaca.');
+      }
+
+      const current = dashboardData.current || {};
+      const adminShiftHealthValue = document.getElementById('adminShiftHealthValue');
+      const adminShiftHealthSub = document.getElementById('adminShiftHealthSub');
+      if (adminShiftHealthValue) adminShiftHealthValue.textContent = 'SHIFT ' + String(current.shiftName || '-').toUpperCase();
+      if (adminShiftHealthSub) adminShiftHealthSub.textContent = (current.shiftHours || '-') + ' WIB • ' + Number((admin.activeOverrides || []).length) + ' override aktif';
+
+      const archive = admin.archive || {};
+      const archiveHealthValue = document.getElementById('archiveHealthValue');
+      const archiveSetupButton = document.getElementById('archiveSetupButton');
+      if (archiveHealthValue) {
+        archiveHealthValue.textContent = archive.active ? '● AKTIF' : '● BELUM AKTIF';
+        archiveHealthValue.className = 'system-health-value ' + (archive.active ? 'ok' : 'bad');
+      }
+      if (archiveSetupButton) {
+        archiveSetupButton.disabled = Boolean(archive.active);
+        archiveSetupButton.textContent = archive.active ? 'ARSIP SUDAH AKTIF' : 'AKTIFKAN ARSIP';
       }
 
       const deleteOptions =
@@ -6283,6 +6561,50 @@
     }
 
 
+    function adminGrantOverride() {
+      const select = document.getElementById('adminOverrideUserSelect');
+      if (!select || !select.value) {
+        showMessage('adminSettingsMessage', 'Pilih staff yang akan diberikan override.', 'warning');
+        return;
+      }
+
+      const payload = Object.assign(getAdminPayload(), {targetUsername: select.value});
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override darurat berhasil diberikan.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminSetOverride(payload);
+    }
+
+    function adminRemoveOverride() {
+      const select = document.getElementById('adminOverrideActiveSelect');
+      const option = select && select.options[select.selectedIndex];
+      if (!select || !select.value || !option) {
+        showMessage('adminSettingsMessage', 'Pilih override aktif yang akan dihapus.', 'warning');
+        return;
+      }
+
+      const payload = Object.assign(getAdminPayload(), {
+        rowNumber: Number(select.value),
+        targetUsername: option.dataset.username || ''
+      });
+
+      setLoading(true);
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override berhasil dihapus.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminHapusOverride(payload);
+    }
+
+    function adminEnableArchive() {
+      setLoading(true);
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Arsip otomatis berhasil diaktifkan.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminAktifkanArsip(getAdminPayload());
+    }
+
     function adminSaveDailyLimit() {
       const payload =
         Object.assign(
@@ -6303,7 +6625,7 @@
         .withSuccessHandler(function (result) {
           adminRefreshSuccess(
             result,
-            'Total izin harian berhasil diperbarui.'
+            'Total izin per shift berhasil diperbarui.'
           );
         })
         .withFailureHandler(function (error) {
@@ -6358,27 +6680,38 @@
     }
 
     function updateActionButtons() {
-      const startButton =
-        document.getElementById('startButton');
+      const startButton = document.getElementById('startButton');
+      const endButton = document.getElementById('endButton');
+      if (!startButton || !endButton) return;
 
-      const endButton =
-        document.getElementById('endButton');
-
-      if (!startButton || !endButton) {
-        return;
-      }
-
-      if (!currentUser || isProcessing) {
+      if (!currentUser || isProcessing || permissionActionInFlight) {
         startButton.disabled = true;
         endButton.disabled = true;
         return;
       }
 
-      const active =
-        hasMyActivePermission();
+      const current = dashboardData.current || {};
+      const active = hasMyActivePermission();
+      const used = Number(current.ownShiftCount || 0);
+      const max = Number(current.batasShift || current.batasHarian || 0);
+      const quotaReached = max > 0 && used >= max;
+      const scheduleAllowed = Boolean(current.canStartBySchedule);
 
-      startButton.disabled = active;
+      startButton.disabled = active || !scheduleAllowed || quotaReached;
       endButton.disabled = !active;
+
+      if (active) {
+        startButton.innerHTML = '▶ &nbsp; START';
+      } else if (quotaReached) {
+        startButton.textContent = 'JATAH SHIFT HABIS';
+      } else if (!scheduleAllowed) {
+        if (current.dutyCode === 'SCHEDULE_UNAVAILABLE') startButton.textContent = 'JADWAL BERMASALAH';
+        else if (current.dutyCode === 'OFFDAY') startButton.textContent = 'STAFF OFFDAY';
+        else if (current.dutyCode === 'CUTI') startButton.textContent = 'STAFF CUTI';
+        else startButton.textContent = 'BELUM BERTUGAS';
+      } else {
+        startButton.innerHTML = '▶ &nbsp; START';
+      }
     }
 
     function updateCountdowns() {
