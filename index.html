@@ -5867,6 +5867,51 @@
       renderShiftHistoryTable();
     }
 
+    function formatClockDisplay(value) {
+      const text =
+        String(
+          value || ''
+        ).trim();
+
+      if (
+        !text ||
+        text === '-'
+      ) {
+        return '-';
+      }
+
+      /*
+       * Jika backend mengirim format yang sudah benar:
+       * 05:40:03
+       */
+      const match =
+        text.match(
+          /(?:^|\s)(\d{2}:\d{2}:\d{2})(?:\s|$)/
+        );
+
+      if (match) {
+        return match[1];
+      }
+
+      /*
+       * Fallback HH:mm -> HH:mm:00
+       */
+      const shortMatch =
+        text.match(
+          /(?:^|\s)(\d{2}:\d{2})(?:\s|$)/
+        );
+
+      if (shortMatch) {
+        return (
+          shortMatch[1] +
+          ':00'
+        );
+      }
+
+      return text;
+    }
+
+
     function renderShiftHistoryTable() {
       const body = document.getElementById('shiftHistoryTableBody');
       if (!body) return;
@@ -5891,7 +5936,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(row.jamKeluar)}</td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -5979,7 +6024,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(row.jamKeluar)}</td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6054,7 +6099,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(row.jamKeluar)}</td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6207,7 +6252,7 @@
               'data-start-ms="' + Number(row.startMs) + '">' +
               escapeHtml(getDisplayName(row.nama)) +
               ' — ' +
-              escapeHtml(row.jamKeluar) +
+              escapeHtml(formatClockDisplay(row.jamKeluar)) +
               ' — ' +
               escapeHtml(statusText) +
             '</option>'
