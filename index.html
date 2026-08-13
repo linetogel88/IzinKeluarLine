@@ -3959,26 +3959,9 @@
       </div>
     </section>
 
-    <!-- RIWAYAT IZIN HARI INI -->
+    <!-- RIWAYAT SHIFT AKTIF -->
     <section id="view-history" class="view hidden">
-      <div class="summary-row">
-        <div class="summary-card">
-          <small>Total Hari Ini</small>
-          <strong id="historyTodaySummaryTotal">0</strong>
-        </div>
-        <div class="summary-card">
-          <small>AMAN</small>
-          <strong id="historyTodaySummarySafe" style="color:#58ffc0">0</strong>
-        </div>
-        <div class="summary-card">
-          <small>TELAT</small>
-          <strong id="historyTodaySummaryLate" style="color:#ff7897">0</strong>
-        </div>
-        <div class="summary-card">
-          <small>Keluar Anda Hari Ini</small>
-          <strong id="historyTodaySummaryMine">0</strong>
-        </div>
-      </div>
+      
 
       <section class="panel panel-pad shift-history-panel">
         <div class="toolbar">
@@ -4021,44 +4004,7 @@
         </button>
       </div>
 
-      <section class="panel panel-pad">
-        <div class="toolbar">
-          <div>
-            <h2 style="margin:0;font-size:21px">Riwayat Izin Hari Ini</h2>
-            <p style="margin:5px 0 0;color:var(--muted);font-size:13px">
-              Semua izin yang terjadi hari ini, termasuk staff yang masih keluar maupun yang sudah kembali.
-            </p>
-          </div>
-
-          <div class="toolbar-right">
-            <input
-              id="historyTodaySearch"
-              class="filter-input"
-              type="text"
-              placeholder="Cari nama / jabatan..."
-              oninput="renderHistoryTodayTable()"
-            >
-            <button class="ghost-btn" type="button" onclick="refreshDashboard(true)">SEGARKAN</button>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>NAMA</th>
-                <th>STATUS</th>
-                <th>KELUAR</th>
-                <th>BATAS</th>
-                <th>MASUK</th>
-                <th>DURASI</th>
-                <th>HASIL</th>
-              </tr>
-            </thead>
-            <tbody id="historyTodayTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+      
     </section>
 
     <!-- RIWAYAT TANGGAL SEMALAM -->
@@ -4073,7 +4019,7 @@
             <path d="M19 12H5"></path>
             <path d="M12 19l-7-7 7-7"></path>
           </svg>
-          KEMBALI KE RIWAYAT HARI INI
+          KEMBALI KE RIWAYAT SHIFT AKTIF
         </button>
       </div>
 
@@ -5680,7 +5626,6 @@
       renderShiftDutyStatus();
       renderMetricCards();
       renderShiftHistorySection();
-      renderHistoryTodaySection();
       renderYesterdayHistorySection();
 
       if (canViewSettings()) {
