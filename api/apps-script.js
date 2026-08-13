@@ -22,7 +22,11 @@ const ALLOWED_ACTIONS =
     'adminSetDurasi',
     'adminSetOverride',
     'adminHapusOverride',
-    'adminAktifkanArsip'
+    'adminAktifkanArsip',
+    'adminGetIpSettings',
+    'adminTambahIp',
+    'adminHapusIp',
+    'adminSetIpRestriction'
   ]);
 
 
@@ -44,6 +48,33 @@ function jsonResponse(
       }
     }
   );
+}
+
+
+function getClientIp(
+  request
+) {
+  /*
+   * Vercel recommends x-vercel-forwarded-for as a
+   * client-IP header. It is preferred over user input.
+   */
+  const raw =
+    request.headers.get(
+      'x-vercel-forwarded-for'
+    ) ||
+    request.headers.get(
+      'x-real-ip'
+    ) ||
+    request.headers.get(
+      'x-forwarded-for'
+    ) ||
+    '';
+
+  return String(
+    raw || ''
+  )
+    .split(',')[0]
+    .trim();
 }
 
 
@@ -140,10 +171,21 @@ export default {
      * Aplikasi ini hanya mengirim form kecil/credential,
      * tidak pernah mengirim file.
      */
+    const clientIp =
+      getClientIp(
+        request
+      );
+
     const upstreamBody =
       JSON.stringify({
         action,
         payload,
+
+        meta: {
+          clientIp:
+            clientIp
+        },
+
         secret:
           appsScriptSecret
       });
