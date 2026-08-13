@@ -3067,6 +3067,75 @@
       font-variant-numeric: tabular-nums !important;
     }
 
+  
+    /* ===========================
+       PENGATURAN IP LOGIN
+    =========================== */
+    .ip-status-box {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid rgba(69, 119, 221, .20);
+      border-radius: 11px;
+      background: rgba(5, 25, 59, .56);
+      text-align: center;
+    }
+
+    .ip-status-label {
+      color: #7189b5;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .ip-status-value {
+      margin-top: 5px;
+      color: #f5f8ff;
+      font-size: 15px;
+      font-weight: 900;
+      word-break: break-all;
+    }
+
+    .ip-status-badge {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 6px 9px;
+      border: 1px solid rgba(255, 191, 84, .30);
+      border-radius: 999px;
+      color: #ffc86d;
+      background: rgba(134, 84, 14, .14);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .05em;
+    }
+
+    .ip-status-badge.active {
+      border-color: rgba(76, 255, 184, .30);
+      color: #61ffc0;
+      background: rgba(28, 131, 93, .14);
+    }
+
+    .ip-note {
+      margin-top: 9px;
+      color: #7890bb;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .ip-button-row {
+      margin-top: 9px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    @media (max-width: 560px) {
+      .ip-button-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
   </style>
 
   <!--
@@ -4165,6 +4234,98 @@
 
         <div class="admin-action-grid">
 
+          <article class="admin-action-card">
+            <div class="admin-action-head">
+              <div class="admin-action-icon">◎</div>
+              <div>
+                <h3>Akses IP Login</h3>
+                <p>
+                  Batasi login semua role selain CS LINE hanya dari IP yang diizinkan.
+                </p>
+              </div>
+            </div>
+
+            <div class="ip-status-box">
+              <div class="ip-status-label">IP ANDA SAAT INI</div>
+              <div id="adminCurrentIpValue" class="ip-status-value">Memuat...</div>
+              <span id="adminIpRestrictionBadge" class="ip-status-badge">
+                PEMBATASAN NONAKTIF
+              </span>
+            </div>
+
+            <label class="admin-field-label">IP yang diizinkan</label>
+            <input
+              id="adminIpInput"
+              class="admin-control"
+              type="text"
+              autocomplete="off"
+              placeholder="Contoh: 203.0.113.10"
+            >
+
+            <label class="admin-field-label">Keterangan</label>
+            <input
+              id="adminIpDescription"
+              class="admin-control"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+              placeholder="Contoh: Kantor Shift Pagi"
+            >
+
+            <div class="ip-button-row">
+              <button
+                class="admin-save-btn"
+                type="button"
+                onclick="adminUseCurrentIp()"
+              >
+                PAKAI IP SAAT INI
+              </button>
+
+              <button
+                class="admin-save-btn"
+                type="button"
+                onclick="adminAddIp()"
+              >
+                TAMBAH IP
+              </button>
+            </div>
+
+            <label class="admin-field-label" style="margin-top:12px">
+              Daftar IP yang diizinkan
+            </label>
+
+            <select
+              id="adminAllowedIpSelect"
+              class="admin-control"
+            >
+              <option value="">Belum ada IP</option>
+            </select>
+
+            <div class="ip-button-row">
+              <button
+                class="admin-save-btn danger"
+                type="button"
+                onclick="adminDeleteIp()"
+              >
+                HAPUS IP
+              </button>
+
+              <button
+                id="adminIpToggleButton"
+                class="admin-save-btn"
+                type="button"
+                onclick="adminToggleIpRestriction()"
+              >
+                AKTIFKAN PEMBATASAN
+              </button>
+            </div>
+
+            <div class="ip-note">
+              CS LINE selalu bebas IP dan tetap dapat login dari mana pun.
+              Pembatasan hanya berlaku untuk role selain CS LINE.
+            </div>
+          </article>
+
           <article class="admin-action-card danger">
             <div class="admin-action-head">
               <div class="admin-action-icon">⌫</div>
@@ -4574,6 +4735,12 @@
     let clockInterval = null;
     let isProcessing = false;
     let permissionActionInFlight = false;
+    let ipSettingsLoading = false;
+    let currentIpSettings = {
+      enabled: false,
+      currentIp: '-',
+      allowedIps: []
+    };
 
     function createRequestId(prefix) {
       const safePrefix = String(prefix || 'REQ').toUpperCase();
@@ -6362,6 +6529,422 @@
       }
 
       syncAdminSettingInputs();
+
+      /*
+       * IP settings diambil terpisah agar IP saat ini berasal
+       * dari request Vercel yang sedang berjalan.
+       */
+      loadAdminIpSettings();
+    }
+
+
+    function renderAdminIpSettings(
+      data
+    ) {
+      currentIpSettings =
+        Object.assign(
+          {
+            enabled: false,
+            currentIp: '-',
+            allowedIps: []
+          },
+          data || {}
+        );
+
+      const currentIpValue =
+        document.getElementById(
+          'adminCurrentIpValue'
+        );
+
+      const badge =
+        document.getElementById(
+          'adminIpRestrictionBadge'
+        );
+
+      const toggleButton =
+        document.getElementById(
+          'adminIpToggleButton'
+        );
+
+      const select =
+        document.getElementById(
+          'adminAllowedIpSelect'
+        );
+
+      if (currentIpValue) {
+        currentIpValue.textContent =
+          currentIpSettings.currentIp ||
+          '-';
+      }
+
+      if (badge) {
+        badge.textContent =
+          currentIpSettings.enabled
+            ? 'PEMBATASAN AKTIF'
+            : 'PEMBATASAN NONAKTIF';
+
+        badge.className =
+          'ip-status-badge' +
+          (
+            currentIpSettings.enabled
+              ? ' active'
+              : ''
+          );
+      }
+
+      if (toggleButton) {
+        toggleButton.textContent =
+          currentIpSettings.enabled
+            ? 'NONAKTIFKAN PEMBATASAN'
+            : 'AKTIFKAN PEMBATASAN';
+      }
+
+      if (select) {
+        const options =
+          (
+            currentIpSettings.allowedIps ||
+            []
+          ).map(
+            function (row) {
+              const label =
+                row.ip +
+                (
+                  row.keterangan
+                    ? ' — ' +
+                      row.keterangan
+                    : ''
+                );
+
+              return (
+                '<option ' +
+                  'value="' +
+                  Number(
+                    row.rowNumber
+                  ) +
+                  '" ' +
+                  'data-ip="' +
+                  escapeHtml(
+                    row.ip
+                  ) +
+                  '">' +
+                  escapeHtml(
+                    label
+                  ) +
+                '</option>'
+              );
+            }
+          )
+          .join('');
+
+        select.innerHTML =
+          options ||
+          '<option value="">Belum ada IP yang diizinkan</option>';
+      }
+    }
+
+
+    function loadAdminIpSettings() {
+      if (
+        !canViewSettings() ||
+        ipSettingsLoading
+      ) {
+        return;
+      }
+
+      ipSettingsLoading =
+        true;
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            ipSettingsLoading =
+              false;
+
+            renderAdminIpSettings(
+              result
+            );
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            ipSettingsLoading =
+              false;
+
+            console.error(
+              'Gagal memuat pengaturan IP:',
+              error
+            );
+          }
+        )
+        .adminGetIpSettings(
+          getAdminPayload()
+        );
+    }
+
+
+    function adminUseCurrentIp() {
+      const input =
+        document.getElementById(
+          'adminIpInput'
+        );
+
+      if (!input) {
+        return;
+      }
+
+      const currentIp =
+        String(
+          currentIpSettings.currentIp ||
+          ''
+        ).trim();
+
+      if (
+        !currentIp ||
+        currentIp === '-'
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'IP saat ini belum dapat dikenali.',
+          'warning'
+        );
+
+        return;
+      }
+
+      input.value =
+        currentIp;
+    }
+
+
+    function adminAddIp() {
+      const input =
+        document.getElementById(
+          'adminIpInput'
+        );
+
+      const description =
+        document.getElementById(
+          'adminIpDescription'
+        );
+
+      const ip =
+        String(
+          input
+            ? input.value
+            : ''
+        ).trim();
+
+      if (!ip) {
+        showMessage(
+          'adminSettingsMessage',
+          'Isi IP yang akan diizinkan.',
+          'warning'
+        );
+
+        return;
+      }
+
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              if (input) {
+                input.value =
+                  '';
+              }
+
+              if (description) {
+                description.value =
+                  '';
+              }
+
+              renderAdminIpSettings(
+                result.ipSettings
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'IP berhasil ditambahkan.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
+            }
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminTambahIp(
+          Object.assign(
+            getAdminPayload(),
+            {
+              ip:
+                ip,
+
+              keterangan:
+                description
+                  ? description.value
+                  : ''
+            }
+          )
+        );
+    }
+
+
+    function adminDeleteIp() {
+      const select =
+        document.getElementById(
+          'adminAllowedIpSelect'
+        );
+
+      const option =
+        select &&
+        select.options[
+          select.selectedIndex
+        ];
+
+      if (
+        !select ||
+        !select.value ||
+        !option
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Pilih IP yang akan dihapus.',
+          'warning'
+        );
+
+        return;
+      }
+
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              renderAdminIpSettings(
+                result.ipSettings
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'IP berhasil dihapus.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
+            }
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminHapusIp(
+          Object.assign(
+            getAdminPayload(),
+            {
+              rowNumber:
+                Number(
+                  select.value
+                ),
+
+              ip:
+                option.dataset.ip ||
+                ''
+            }
+          )
+        );
+    }
+
+
+    function adminToggleIpRestriction() {
+      const enabled =
+        !Boolean(
+          currentIpSettings.enabled
+        );
+
+      if (
+        enabled &&
+        !(
+          currentIpSettings.allowedIps ||
+          []
+        ).length
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Tambahkan minimal 1 IP sebelum mengaktifkan pembatasan.',
+          'warning'
+        );
+
+        return;
+      }
+
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              renderAdminIpSettings(
+                result.ipSettings
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'Pengaturan IP berhasil diperbarui.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
+            }
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminSetIpRestriction(
+          Object.assign(
+            getAdminPayload(),
+            {
+              enabled:
+                enabled
+            }
+          )
+        );
     }
 
 
@@ -7099,6 +7682,12 @@
         ) === 0 ||
         cleanMessage.indexOf(
           'staff sedang cuti'
+        ) === 0 ||
+        cleanMessage.indexOf(
+          'akses login tidak diizinkan dari ip ini'
+        ) === 0 ||
+        cleanMessage.indexOf(
+          'ip perangkat tidak dapat dikenali'
         ) === 0
       );
     }
