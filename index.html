@@ -3042,16 +3042,6 @@
       text-align: center;
     }
 
-  
-    /* Jam Keluar mengikuti gaya JAM SEKARANG */
-    .history-clock-value {
-      color: #76b8ff;
-      font-variant-numeric: tabular-nums;
-      font-weight: 800;
-      letter-spacing: .6px;
-      white-space: nowrap;
-    }
-
   </style>
 
   <!--
@@ -5877,6 +5867,20 @@
       renderShiftHistoryTable();
     }
 
+    function normalizeLiveClockSeparator(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\./g, ':');
+    }
+
+
+    function formatCurrentClockDisplay(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\./g, ':');
+    }
+
+
     function formatClockDisplay(value) {
       const text =
         String(
@@ -5891,42 +5895,30 @@
       }
 
       /*
-       * Samakan dengan tampilan JAM SEKARANG.
-       * Browser id-ID menampilkan:
-       * 03.56.56
-       *
-       * Backend biasanya mengirim:
-       * 03:56:56
+       * Jika backend mengirim format yang sudah benar:
+       * 05:40:03
        */
-      const fullMatch =
+      const match =
         text.match(
-          /(?:^|\s)(\d{2})[:.](\d{2})[:.](\d{2})(?:\s|$)/
+          /(?:^|\s)(\d{2}:\d{2}:\d{2})(?:\s|$)/
         );
 
-      if (fullMatch) {
-        return (
-          fullMatch[1] +
-          '.' +
-          fullMatch[2] +
-          '.' +
-          fullMatch[3]
-        );
+      if (match) {
+        return match[1];
       }
 
       /*
-       * Fallback HH:mm / HH.mm
+       * Fallback HH:mm -> HH:mm:00
        */
       const shortMatch =
         text.match(
-          /(?:^|\s)(\d{2})[:.](\d{2})(?:\s|$)/
+          /(?:^|\s)(\d{2}:\d{2})(?:\s|$)/
         );
 
       if (shortMatch) {
         return (
           shortMatch[1] +
-          '.' +
-          shortMatch[2] +
-          '.00'
+          ':00'
         );
       }
 
@@ -5958,7 +5950,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6046,7 +6038,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6121,7 +6113,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
+            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6963,14 +6955,18 @@
         document.getElementById('liveClock');
 
       if (liveClock) {
-        liveClock.textContent = time;
+        liveClock.textContent = formatCurrentClockDisplay(
+          time
+        );
       }
 
       const navLiveClock =
         document.getElementById('navLiveClock');
 
       if (navLiveClock) {
-        navLiveClock.textContent = time;
+        navLiveClock.textContent = normalizeLiveClockSeparator(
+          time
+        );
       }
 
       const todayDateElement =
