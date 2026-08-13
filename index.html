@@ -3042,6 +3042,16 @@
       text-align: center;
     }
 
+  
+    /* Jam Keluar mengikuti gaya JAM SEKARANG */
+    .history-clock-value {
+      color: #76b8ff;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      letter-spacing: .6px;
+      white-space: nowrap;
+    }
+
   </style>
 
   <!--
@@ -5881,30 +5891,42 @@
       }
 
       /*
-       * Jika backend mengirim format yang sudah benar:
-       * 05:40:03
+       * Samakan dengan tampilan JAM SEKARANG.
+       * Browser id-ID menampilkan:
+       * 03.56.56
+       *
+       * Backend biasanya mengirim:
+       * 03:56:56
        */
-      const match =
+      const fullMatch =
         text.match(
-          /(?:^|\s)(\d{2}:\d{2}:\d{2})(?:\s|$)/
+          /(?:^|\s)(\d{2})[:.](\d{2})[:.](\d{2})(?:\s|$)/
         );
 
-      if (match) {
-        return match[1];
+      if (fullMatch) {
+        return (
+          fullMatch[1] +
+          '.' +
+          fullMatch[2] +
+          '.' +
+          fullMatch[3]
+        );
       }
 
       /*
-       * Fallback HH:mm -> HH:mm:00
+       * Fallback HH:mm / HH.mm
        */
       const shortMatch =
         text.match(
-          /(?:^|\s)(\d{2}:\d{2})(?:\s|$)/
+          /(?:^|\s)(\d{2})[:.](\d{2})(?:\s|$)/
         );
 
       if (shortMatch) {
         return (
           shortMatch[1] +
-          ':00'
+          '.' +
+          shortMatch[2] +
+          '.00'
         );
       }
 
@@ -5936,7 +5958,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
+            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6024,7 +6046,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
+            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
@@ -6099,7 +6121,7 @@
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
+            <td><span class="history-clock-value">${escapeHtml(formatClockDisplay(row.jamKeluar))}</span></td>
             <td>${escapeHtml(row.batasKembali)}</td>
             <td>${escapeHtml(row.jamKembali)}</td>
             <td>${escapeHtml(row.durasi)}</td>
