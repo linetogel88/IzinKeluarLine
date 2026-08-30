@@ -260,6 +260,19 @@
       box-shadow: 0 10px 30px rgba(42, 68, 255, .28);
     }
 
+
+    .login-btn:disabled {
+      cursor: wait;
+      opacity: .88;
+      filter: saturate(.92);
+    }
+
+    .login-btn .btn-mini-spinner {
+      display: inline-block;
+      vertical-align: -3px;
+      margin-right: 9px;
+    }
+
     /* ===========================
        HERO
     =========================== */
@@ -4564,7 +4577,7 @@
       <label class="field-label" for="loginPassword">Password</label>
       <input id="loginPassword" class="field-input" type="password" autocomplete="current-password" placeholder="Masukkan password">
 
-      <button class="login-btn" type="button" onclick="handleLogin()">MASUK</button>
+      <button id="loginButton" class="login-btn" type="button" onclick="handleLogin()">MASUK</button>
       <div id="loginMessage" class="message"></div>
     </div>
   </section>
@@ -5942,6 +5955,23 @@
     const TZ = 'Asia/Jakarta';
     const SESSION_KEY = 'izinKeluarStaffSession';
 
+    /*
+     * Cache ringan agar setelah F5 dashboard dapat tampil seketika
+     * sambil server melakukan sinkronisasi terbaru di background.
+     * Cache hanya hidup di sessionStorage browser/tab yang sama.
+     */
+    const DASHBOARD_CACHE_KEY = 'izinKeluarDashboardCacheV2';
+    const DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
+
+    /*
+     * Fullscreen loading untuk LOGIN / refresh dashboard hanya ditampilkan
+     * sebentar agar UI terasa responsif. Request server TIDAK dipotong.
+     */
+    const QUICK_GLOBAL_LOADING_MS = 420;
+    let quickGlobalLoadingTimer = null;
+    let dashboardRefreshInFlight = false;
+    let sessionRestoreInFlight = false;
+
     let credentials = {
       username: '',
       password: ''
@@ -6028,7 +6058,141 @@
     }
 
 
+
+    function saveDashboardCache(user, dashboard) {
+      if (!user || !dashboard) {
+        return;
+      }
+
+      try {
+        sessionStorage.setItem(
+          DASHBOARD_CACHE_KEY,
+          JSON.stringify({
+            username: String(user.username || '').trim().toLowerCase(),
+            savedAt: Date.now(),
+            user: user,
+            dashboard: dashboard
+          })
+        );
+      } catch (error) {
+        console.warn('Cache dashboard tidak dapat disimpan:', error);
+      }
+    }
+
+
+    function readDashboardCache(username) {
+      try {
+        const raw = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
+
+        if (!raw) {
+          return null;
+        }
+
+        const cached = JSON.parse(raw);
+        const targetUsername = String(username || '').trim().toLowerCase();
+
+        if (
+          !cached ||
+          !cached.user ||
+          !cached.dashboard ||
+          !cached.savedAt ||
+          String(cached.username || '').trim().toLowerCase() !== targetUsername
+        ) {
+          return null;
+        }
+
+        if ((Date.now() - Number(cached.savedAt)) > DASHBOARD_CACHE_MAX_AGE_MS) {
+          sessionStorage.removeItem(DASHBOARD_CACHE_KEY);
+          return null;
+        }
+
+        return cached;
+      } catch (error) {
+        try {
+          sessionStorage.removeItem(DASHBOARD_CACHE_KEY);
+        } catch (ignored) {}
+
+        return null;
+      }
+    }
+
+
+    function clearDashboardCache() {
+      try {
+        sessionStorage.removeItem(DASHBOARD_CACHE_KEY);
+      } catch (error) {
+        console.warn('Cache dashboard tidak dapat dihapus:', error);
+      }
+    }
+
+
+    function setLoginButtonBusy(busy) {
+      const button = document.getElementById('loginButton');
+
+      if (!button) {
+        return;
+      }
+
+      button.disabled = Boolean(busy);
+
+      if (busy) {
+        button.innerHTML =
+          '<span class="btn-mini-spinner"></span>' +
+          'MENGHUBUNGKAN...';
+      } else {
+        button.textContent = 'MASUK';
+      }
+    }
+
+
+    function beginQuickGlobalLoading(title, text) {
+      if (quickGlobalLoadingTimer) {
+        clearTimeout(quickGlobalLoadingTimer);
+        quickGlobalLoadingTimer = null;
+      }
+
+      setLoading(true);
+      setLoadingContent(
+        title || 'MEMPROSES',
+        text || 'Sinkronisasi data...'
+      );
+
+      /*
+       * Hanya visual fullscreen yang disembunyikan.
+       * isProcessing tetap TRUE sampai respons server selesai,
+       * sehingga tombol aksi tetap aman dari double-click.
+       */
+      quickGlobalLoadingTimer = setTimeout(function () {
+        const loading = document.getElementById('loading');
+
+        if (!loading || !isProcessing || permissionActionInFlight) {
+          return;
+        }
+
+        loading.classList.add('quick-hide');
+
+        setTimeout(function () {
+          if (isProcessing && !permissionActionInFlight) {
+            loading.classList.remove('show');
+          }
+        }, 130);
+      }, QUICK_GLOBAL_LOADING_MS);
+    }
+
+
+    function finishQuickGlobalLoading() {
+      if (quickGlobalLoadingTimer) {
+        clearTimeout(quickGlobalLoadingTimer);
+        quickGlobalLoadingTimer = null;
+      }
+
+      setLoading(false);
+    }
+
+
     function clearLoginSession() {
+      clearDashboardCache();
+
       try {
         sessionStorage.removeItem(
           SESSION_KEY
@@ -6065,13 +6229,64 @@
         !savedSession.username ||
         !savedSession.password
       ) {
+        document.documentElement.classList.remove(
+          'restoring-session'
+        );
         return;
       }
 
-      setLoading(true);
+      credentials = {
+        username: savedSession.username,
+        password: savedSession.password
+      };
 
+      /*
+       * FAST RESTORE:
+       * Bila ada snapshot dashboard dari session yang sama, tampilkan dulu.
+       * Jadi setelah F5 tidak perlu menatap loading sampai request server selesai.
+       */
+      const cached =
+        readDashboardCache(
+          savedSession.username
+        );
+
+      if (cached) {
+        try {
+          currentUser = cached.user;
+          showApplication();
+          renderDashboard(cached.dashboard);
+          startAutoRefresh();
+
+          document.documentElement.classList.remove(
+            'restoring-session'
+          );
+        } catch (error) {
+          console.warn(
+            'Cache dashboard gagal dirender:',
+            error
+          );
+        }
+      } else {
+        beginQuickGlobalLoading(
+          'MEMUAT DASHBOARD',
+          'Menyiapkan data akun...'
+        );
+      }
+
+      if (sessionRestoreInFlight) {
+        return;
+      }
+
+      sessionRestoreInFlight = true;
+
+      /*
+       * Validasi + sinkronisasi tetap dilakukan,
+       * tetapi bila cache sudah tampil proses ini berjalan di background.
+       */
       google.script.run
         .withSuccessHandler(function (result) {
+          sessionRestoreInFlight = false;
+
           try {
             credentials = {
               username:
@@ -6087,6 +6302,11 @@
             showApplication();
 
             renderDashboard(
+              result.dashboard
+            );
+
+            saveDashboardCache(
+              result.user,
               result.dashboard
             );
 
@@ -6107,13 +6327,16 @@
               'restoring-session'
             );
 
-            setLoading(false);
+            if (!cached) {
+              finishQuickGlobalLoading();
+            }
           }
         })
         .withFailureHandler(function (error) {
+          sessionRestoreInFlight = false;
+
           /*
-           * Jika password di sheet berubah atau akun tidak lagi valid,
-           * hapus session lalu tampilkan halaman login.
+           * Jika sesi tidak lagi valid, cache tidak boleh dipakai.
            */
           clearLoginSession();
 
@@ -6139,7 +6362,9 @@
             'restoring-session'
           );
 
-          setLoading(false);
+          if (!cached) {
+            finishQuickGlobalLoading();
+          }
 
           const message =
             error && error.message
@@ -6162,6 +6387,7 @@
             savedSession.password
         });
     }
+
 
 
 
@@ -6620,7 +6846,23 @@
         return;
       }
 
-      setLoading(true);
+      if (isProcessing) {
+        return;
+      }
+
+      clearMessage('loginMessage');
+
+      /*
+       * Loader fullscreen hanya sekitar 420 ms.
+       * Setelah itu form login terlihat kembali dengan tombol
+       * MENGHUBUNGKAN... sampai server menjawab.
+       */
+      beginQuickGlobalLoading(
+        'MEMPROSES',
+        'Memverifikasi akun...'
+      );
+
+      setLoginButtonBusy(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
@@ -6635,6 +6877,11 @@
             saveLoginSession(
               username,
               password
+            );
+
+            saveDashboardCache(
+              result.user,
+              result.dashboard
             );
 
             document.getElementById('loginPassword').value = '';
@@ -6654,10 +6901,13 @@
               'warning'
             );
           } finally {
-            setLoading(false);
+            setLoginButtonBusy(false);
+            finishQuickGlobalLoading();
           }
         })
         .withFailureHandler(function (error) {
+          setLoginButtonBusy(false);
+          finishQuickGlobalLoading();
           handleServerError(error, 'loginMessage');
         })
         .login({
@@ -6969,18 +7219,34 @@
     }
 
     function refreshDashboard(showLoading) {
-      if (!currentUser || isProcessing) {
+      if (
+        !currentUser ||
+        isProcessing ||
+        dashboardRefreshInFlight
+      ) {
         return;
       }
 
+      dashboardRefreshInFlight = true;
+
       if (showLoading) {
-        setLoading(true);
+        beginQuickGlobalLoading(
+          'MENYEGARKAN',
+          'Mengambil data terbaru...'
+        );
       }
 
       google.script.run
         .withSuccessHandler(function (result) {
+          dashboardRefreshInFlight = false;
+
           try {
             renderDashboard(result);
+
+            saveDashboardCache(
+              currentUser,
+              result
+            );
           } catch (error) {
             console.error(
               'Gagal memperbarui dashboard:',
@@ -6996,12 +7262,15 @@
             }
           } finally {
             if (showLoading) {
-              setLoading(false);
+              finishQuickGlobalLoading();
             }
           }
         })
         .withFailureHandler(function (error) {
+          dashboardRefreshInFlight = false;
+
           if (showLoading) {
+            finishQuickGlobalLoading();
             handleServerError(error, 'appMessage');
           } else {
             console.error(error);
@@ -7055,6 +7324,17 @@
       }
 
       updateCountdowns();
+
+      /*
+       * Snapshot terbaru selalu disimpan setelah render sukses.
+       * START / END / refresh otomatis ikut memperbarui cache.
+       */
+      if (currentUser && dashboardData) {
+        saveDashboardCache(
+          currentUser,
+          dashboardData
+        );
+      }
     }
 
     function renderProfile() {
@@ -9387,7 +9667,12 @@
 
       if (loading) {
         if (isProcessing) {
+          /*
+           * Request baru harus selalu bisa memunculkan loader lagi
+           * walaupun request sebelumnya sempat memakai quick-hide.
+           */
           resetLoadingVisualState();
+          loading.classList.remove('quick-hide');
 
           setLoadingContent(
             'MEMPROSES',
@@ -9398,6 +9683,11 @@
             'show'
           );
         } else {
+          if (quickGlobalLoadingTimer) {
+            clearTimeout(quickGlobalLoadingTimer);
+            quickGlobalLoadingTimer = null;
+          }
+
           loading.classList.remove(
             'show',
             'quick-hide'
