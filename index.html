@@ -6007,6 +6007,10 @@
     let permissionLoadingTimer = null;
     let permissionLoadingMode = '';
     const PERMISSION_FULLSCREEN_LOADING_MS = 260;
+    const PERMISSION_ACTION_WATCHDOG_MS = 5000;
+    let permissionActionWatchdogTimer = null;
+    let permissionActionStartedAt = 0;
+    let permissionActionToken = 0;
 
     let ipSettingsLoading = false;
     let currentIpSettings = {
@@ -6042,6 +6046,25 @@
       }, 1000);
 
       restoreLoginSession();
+
+      document.addEventListener(
+        'visibilitychange',
+        function () {
+          if (!document.hidden) {
+            recoverPermissionActionUi();
+          }
+        }
+      );
+
+      window.addEventListener(
+        'focus',
+        recoverPermissionActionUi
+      );
+
+      window.addEventListener(
+        'online',
+        recoverPermissionActionUi
+      );
 
       document.addEventListener(
         'keydown',
@@ -6324,6 +6347,10 @@
 
       sessionRestoreInFlight = false;
       sessionRestoreRetryCount = 0;
+
+      permissionActionToken += 1;
+      permissionActionInFlight = false;
+      clearPermissionActionWatchdog();
 
       removeStorageValue(
         'sessionStorage',
@@ -7538,6 +7565,107 @@
     }
 
 
+    function isCurrentPermissionAction(actionToken) {
+      return (
+        Number(actionToken) ===
+        Number(permissionActionToken)
+      );
+    }
+
+
+    function clearPermissionActionWatchdog(actionToken) {
+      if (
+        actionToken !== undefined &&
+        !isCurrentPermissionAction(actionToken)
+      ) {
+        return;
+      }
+
+      if (permissionActionWatchdogTimer) {
+        clearTimeout(
+          permissionActionWatchdogTimer
+        );
+
+        permissionActionWatchdogTimer = null;
+      }
+
+      permissionActionStartedAt = 0;
+    }
+
+
+    function releasePermissionActionUi(actionToken, mode) {
+      if (
+        !isCurrentPermissionAction(actionToken) ||
+        !permissionActionInFlight
+      ) {
+        return;
+      }
+
+      if (permissionActionWatchdogTimer) {
+        clearTimeout(
+          permissionActionWatchdogTimer
+        );
+
+        permissionActionWatchdogTimer = null;
+      }
+
+      permissionActionStartedAt = 0;
+      permissionActionInFlight = false;
+
+      finishPermissionActionLoading(
+        mode,
+        actionToken
+      );
+
+      showMessage(
+        'appMessage',
+        mode === 'end'
+          ? 'END sudah dikirim. Server masih menyinkronkan di belakang; tombol telah dipulihkan otomatis.'
+          : 'START sudah dikirim. Server masih menyinkronkan di belakang; tombol telah dipulihkan otomatis.',
+        'warning'
+      );
+    }
+
+
+    function startPermissionActionWatchdog(
+      actionToken,
+      mode
+    ) {
+      clearPermissionActionWatchdog();
+
+      permissionActionStartedAt =
+        Date.now();
+
+      permissionActionWatchdogTimer =
+        setTimeout(function () {
+          releasePermissionActionUi(
+            actionToken,
+            mode
+          );
+        }, PERMISSION_ACTION_WATCHDOG_MS);
+    }
+
+
+    function recoverPermissionActionUi() {
+      if (
+        !permissionActionInFlight ||
+        !permissionActionStartedAt
+      ) {
+        return;
+      }
+
+      if (
+        Date.now() - permissionActionStartedAt >=
+        PERMISSION_ACTION_WATCHDOG_MS
+      ) {
+        releasePermissionActionUi(
+          permissionActionToken,
+          permissionLoadingMode || 'start'
+        );
+      }
+    }
+
+
     function startPermission() {
       const current = dashboardData && dashboardData.current ? dashboardData.current : {};
 
@@ -7553,14 +7681,32 @@
       }
 
       permissionActionInFlight = true;
+      const actionToken =
+        permissionActionToken + 1;
+
+      permissionActionToken =
+        actionToken;
+
       const requestId = createRequestId('START');
       const optimisticState =
         applyOptimisticPermission('start');
 
-      beginPermissionActionLoading('start');
+      beginPermissionActionLoading(
+        'start',
+        actionToken
+      );
+
+      startPermissionActionWatchdog(
+        actionToken,
+        'start'
+      );
 
       google.script.run
         .withSuccessHandler(function (result) {
+          if (!isCurrentPermissionAction(actionToken)) {
+            return;
+          }
+
           try {
             showMessage('appMessage', result.message, result.type || (result.ok === false ? 'warning' : 'success'));
 
@@ -7579,17 +7725,35 @@
             console.error('Gagal memperbarui dashboard:', error);
             showMessage('appMessage', 'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.', 'warning');
           } finally {
+            clearPermissionActionWatchdog(
+              actionToken
+            );
+
             permissionActionInFlight = false;
-            finishPermissionActionLoading('start');
+            finishPermissionActionLoading(
+              'start',
+              actionToken
+            );
           }
         })
         .withFailureHandler(function (error) {
+          if (!isCurrentPermissionAction(actionToken)) {
+            return;
+          }
+
           rollbackOptimisticPermission(
             optimisticState
           );
 
+          clearPermissionActionWatchdog(
+            actionToken
+          );
+
           permissionActionInFlight = false;
-          finishPermissionActionLoading('start');
+          finishPermissionActionLoading(
+            'start',
+            actionToken
+          );
           handleServerError(error, 'appMessage');
 
           setTimeout(function () {
@@ -7609,14 +7773,32 @@
       }
 
       permissionActionInFlight = true;
+      const actionToken =
+        permissionActionToken + 1;
+
+      permissionActionToken =
+        actionToken;
+
       const requestId = createRequestId('END');
       const optimisticState =
         applyOptimisticPermission('end');
 
-      beginPermissionActionLoading('end');
+      beginPermissionActionLoading(
+        'end',
+        actionToken
+      );
+
+      startPermissionActionWatchdog(
+        actionToken,
+        'end'
+      );
 
       google.script.run
         .withSuccessHandler(function (result) {
+          if (!isCurrentPermissionAction(actionToken)) {
+            return;
+          }
+
           try {
             showMessage(
               'appMessage',
@@ -7647,17 +7829,35 @@
               'warning'
             );
           } finally {
+            clearPermissionActionWatchdog(
+              actionToken
+            );
+
             permissionActionInFlight = false;
-            finishPermissionActionLoading('end');
+            finishPermissionActionLoading(
+              'end',
+              actionToken
+            );
           }
         })
         .withFailureHandler(function (error) {
+          if (!isCurrentPermissionAction(actionToken)) {
+            return;
+          }
+
           rollbackOptimisticPermission(
             optimisticState
           );
 
+          clearPermissionActionWatchdog(
+            actionToken
+          );
+
           permissionActionInFlight = false;
-          finishPermissionActionLoading('end');
+          finishPermissionActionLoading(
+            'end',
+            actionToken
+          );
           handleServerError(error, 'appMessage');
 
           setTimeout(function () {
@@ -7682,6 +7882,9 @@
 
       dashboardRequestInFlight = true;
 
+      const permissionTokenAtRequest =
+        permissionActionToken;
+
       if (showLoading) {
         setLoading(true);
         scheduleFastLoadingHide(
@@ -7692,7 +7895,12 @@
       google.script.run
         .withSuccessHandler(function (result) {
           try {
-            renderDashboard(result);
+            if (
+              permissionTokenAtRequest ===
+              permissionActionToken
+            ) {
+              renderDashboard(result);
+            }
           } catch (error) {
             console.error(
               'Gagal memperbarui dashboard:',
@@ -10045,7 +10253,17 @@
     }
 
 
-    function beginPermissionActionLoading(mode) {
+    function beginPermissionActionLoading(
+      mode,
+      actionToken
+    ) {
+      if (
+        actionToken !== undefined &&
+        !isCurrentPermissionAction(actionToken)
+      ) {
+        return;
+      }
+
       const loading =
         document.getElementById('loading');
 
@@ -10139,7 +10357,17 @@
     }
 
 
-    function finishPermissionActionLoading(mode) {
+    function finishPermissionActionLoading(
+      mode,
+      actionToken
+    ) {
+      if (
+        actionToken !== undefined &&
+        !isCurrentPermissionAction(actionToken)
+      ) {
+        return;
+      }
+
       if (permissionLoadingTimer) {
         clearTimeout(
           permissionLoadingTimer
@@ -10233,4 +10461,3 @@
   </script>
 </body>
 </html>
-
