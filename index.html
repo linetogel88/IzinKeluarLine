@@ -4327,6 +4327,43 @@
         0 0 12px rgba(31, 138, 255, .06);
     }
 
+    /* DURASI AKTIF: stopwatch kecil hanya untuk SEDANG KELUAR */
+    td.history-duration-cell.running {
+      color: #dff4ff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    td.history-duration-cell.running::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 6px;
+      vertical-align: -2px;
+      border-radius: 50%;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 14px 14px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fd4ff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13' r='7.25'/%3E%3Cpath d='M12 13V9.5'/%3E%3Cpath d='M12 13l2.7 1.8'/%3E%3Cpath d='M9 2h6'/%3E%3Cpath d='M12 5V3.2'/%3E%3C/svg%3E");
+      filter:
+        drop-shadow(0 0 4px rgba(90, 191, 255, .22))
+        drop-shadow(0 0 8px rgba(76, 178, 255, .10));
+      animation: historyStopwatchPulse 1.45s ease-in-out infinite;
+    }
+
+    @keyframes historyStopwatchPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: .90;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
     /* TELAT: 1 BARIS FULL MERAH — MENYATU TANPA GARIS ANTAR KOLOM */
     tr.permission-late-row td {
       position: relative;
@@ -8430,7 +8467,7 @@
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali || '-')}</td>
             <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
@@ -8544,7 +8581,7 @@
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali || '-')}</td>
             <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
@@ -8645,7 +8682,7 @@
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
             <td>${escapeHtml(row.batasKembali || '-')}</td>
             <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
