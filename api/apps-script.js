@@ -17,6 +17,7 @@ const ALLOWED_ACTIONS =
     'gantiPassword',
     'adminHapusJamIzin',
     'adminTambahLogin',
+    'adminHapusLogin',
     'adminSetJabatan',
     'adminSetBatasHarian',
     'adminSetDurasi',
