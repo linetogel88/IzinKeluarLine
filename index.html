@@ -4518,9 +4518,18 @@
       box-shadow: 0 0 12px rgba(255, 85, 121, .58);
     }
 
-    #adminAddLoginButton:disabled {
+    #adminAddLoginButton:disabled,
+    .admin-save-btn:disabled,
+    .health-mini-btn:disabled {
       cursor: wait;
-      opacity: .82;
+      opacity: .72;
+      filter: saturate(.76);
+    }
+
+    .system-health-card .admin-add-login-message {
+      margin-top: 8px;
+      padding: 7px 9px;
+      font-size: 9px;
     }
 
     @keyframes adminAddLoginDot {
@@ -5608,6 +5617,7 @@
           <div id="archiveHealthValue" class="system-health-value">-</div>
           <div id="archiveHealthSub" class="system-health-sub">Arsip izin bulan lama.</div>
           <button id="archiveSetupButton" class="health-mini-btn" type="button" onclick="adminEnableArchive()">AKTIFKAN ARSIP</button>
+          <div id="adminArchiveMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
         </div>
       </div>
 
@@ -5666,6 +5676,7 @@
 
             <div class="ip-button-row">
               <button
+                id="adminUseCurrentIpButton"
                 class="admin-save-btn"
                 type="button"
                 onclick="adminUseCurrentIp()"
@@ -5674,6 +5685,7 @@
               </button>
 
               <button
+                id="adminAddIpButton"
                 class="admin-save-btn"
                 type="button"
                 onclick="adminAddIp()"
@@ -5695,6 +5707,7 @@
 
             <div class="ip-button-row">
               <button
+                id="adminDeleteIpButton"
                 class="admin-save-btn danger"
                 type="button"
                 onclick="adminDeleteIp()"
@@ -5711,6 +5724,8 @@
                 AKTIFKAN PEMBATASAN
               </button>
             </div>
+
+            <div id="adminIpMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
 
             <div class="ip-note">
               CS LINE selalu bebas IP dan tetap dapat login dari mana pun.
@@ -5733,12 +5748,15 @@
             </select>
 
             <button
+              id="adminDeletePermissionButton"
               class="admin-save-btn danger"
               type="button"
               onclick="adminDeletePermission()"
             >
               HAPUS JAM IZIN
             </button>
+
+            <div id="adminDeletePermissionMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
             <div class="delete-permission-note">
               <div class="delete-permission-note-title">
                 <svg
@@ -5803,7 +5821,7 @@
                   class="admin-control"
                   type="text"
                   autocomplete="off"
-                  placeholder="Password"
+                  placeholder="Password (minimal 1 karakter)"
                 >
               </div>
             </div>
@@ -5855,12 +5873,15 @@
             </select>
 
             <button
+              id="adminDeleteLoginButton"
               class="admin-save-btn danger"
               type="button"
               onclick="adminDeleteLogin()"
             >
               HAPUS DATA
             </button>
+
+            <div id="adminDeleteLoginMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
 
             <div class="delete-login-note">
               Riwayat izin staff tidak ikut dihapus.
@@ -5884,12 +5905,15 @@
             <select id="adminRoleStatusSelect" class="admin-control"></select>
 
             <button
+              id="adminRoleSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminChangeRole()"
             >
               SIMPAN
             </button>
+
+            <div id="adminRoleMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
           <article class="admin-action-card">
@@ -5902,10 +5926,11 @@
             </div>
             <label class="admin-field-label">Staff</label>
             <select id="adminOverrideUserSelect" class="admin-control"></select>
-            <button class="admin-save-btn" type="button" onclick="adminGrantOverride()">IZINKAN SHIFT INI</button>
+            <button id="adminGrantOverrideButton" class="admin-save-btn" type="button" onclick="adminGrantOverride()">IZINKAN SHIFT INI</button>
             <label class="admin-field-label" style="margin-top:12px">Override aktif</label>
             <select id="adminOverrideActiveSelect" class="admin-control"><option value="">Belum ada override aktif</option></select>
-            <button class="admin-save-btn danger" type="button" onclick="adminRemoveOverride()">HAPUS OVERRIDE</button>
+            <button id="adminRemoveOverrideButton" class="admin-save-btn danger" type="button" onclick="adminRemoveOverride()">HAPUS OVERRIDE</button>
+            <div id="adminOverrideMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
           <article class="admin-action-card">
@@ -5939,12 +5964,15 @@
             </div>
 
             <button
+              id="adminDailyLimitSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminSaveDailyLimit()"
             >
               SIMPAN
             </button>
+
+            <div id="adminDailyLimitMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
           <article class="admin-action-card">
@@ -5973,12 +6001,15 @@
             </div>
 
             <button
+              id="adminDurationSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminSaveDuration()"
             >
               SIMPAN
             </button>
+
+            <div id="adminDurationMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
         </div>
@@ -6071,7 +6102,7 @@
               id="newPasswordInput"
               type="password"
               autocomplete="new-password"
-              placeholder="Minimal 6 karakter"
+              placeholder="Minimal 1 karakter"
             >
             <button
               type="button"
@@ -7062,9 +7093,9 @@
         return;
       }
 
-      if (passwordBaru.length < 6) {
+      if (passwordBaru.length < 1) {
         setPasswordMessage(
-          'Password baru minimal 6 karakter.',
+          'Password baru minimal 1 karakter.',
           'error'
         );
         return;
@@ -9356,6 +9387,389 @@
     }
 
 
+    function showAdminActionMessage(elementId, message, type) {
+      const box =
+        document.getElementById(elementId);
+
+      if (!box) {
+        return;
+      }
+
+      const clean =
+        String(message || '')
+          .replace(/^(?:Exception|Error):\s*/i, '')
+          .trim();
+
+      if (!clean) {
+        box.textContent = '';
+        box.className =
+          'admin-add-login-message';
+        return;
+      }
+
+      box.textContent = clean;
+      box.className =
+        'admin-add-login-message show ' +
+        (type || 'info');
+    }
+
+
+    function setAdminActionButtonBusy(
+      buttonId,
+      busy,
+      busyText
+    ) {
+      const button =
+        document.getElementById(buttonId);
+
+      if (!button) {
+        return;
+      }
+
+      if (!button.dataset.originalText) {
+        button.dataset.originalText =
+          String(button.textContent || '').trim();
+      }
+
+      button.disabled = Boolean(busy);
+      button.textContent =
+        busy
+          ? (busyText || 'MEMPROSES...')
+          : button.dataset.originalText;
+    }
+
+
+    function normalizeAdminActionResponse(rawResult) {
+      let result = rawResult;
+
+      for (let depth = 0; depth < 3; depth += 1) {
+        if (
+          result &&
+          typeof result === 'object' &&
+          result.result &&
+          typeof result.result === 'object'
+        ) {
+          result = result.result;
+          continue;
+        }
+
+        if (
+          result &&
+          typeof result === 'object' &&
+          result.data &&
+          typeof result.data === 'object' &&
+          (
+            Object.prototype.hasOwnProperty.call(result.data, 'ok') ||
+            Object.prototype.hasOwnProperty.call(result.data, 'success') ||
+            Object.prototype.hasOwnProperty.call(result.data, 'error') ||
+            result.data.message ||
+            result.data.dashboard ||
+            result.data.ipSettings ||
+            result.data.current ||
+            result.data.admin ||
+            result.data.settings
+          )
+        ) {
+          result = result.data;
+          continue;
+        }
+
+        break;
+      }
+
+      return result;
+    }
+
+
+    function isAdminActionFailure(result) {
+      if (!result || typeof result !== 'object') {
+        return false;
+      }
+
+      if (
+        result.ok === false ||
+        result.success === false ||
+        result.error === true
+      ) {
+        return true;
+      }
+
+      const type =
+        String(result.type || '')
+          .trim()
+          .toLowerCase();
+
+      return type === 'error' || type === 'danger';
+    }
+
+
+    function getAdminActionErrorMessage(error, actionName) {
+      const raw =
+        error && error.message
+          ? error.message
+          : String(error || 'Aksi admin gagal diproses.');
+
+      const clean =
+        raw.replace(/^(?:Exception|Error):\s*/i, '').trim();
+
+      const lower = clean.toLowerCase();
+      const actionLower =
+        String(actionName || '').toLowerCase();
+
+      if (
+        actionLower &&
+        lower.includes(actionLower) &&
+        (
+          lower.includes('not found') ||
+          lower.includes('unknown') ||
+          lower.includes('tidak ditemukan') ||
+          lower.includes('not allowed') ||
+          lower.includes('tidak diizinkan')
+        )
+      ) {
+        return (
+          'Backend belum menerima action ' +
+          actionName +
+          '. Periksa /api/apps-script atau Code.gs.'
+        );
+      }
+
+      return clean || 'Aksi admin gagal diproses.';
+    }
+
+
+    function getAdminDashboardFromResponse(result) {
+      if (!result || typeof result !== 'object') {
+        return null;
+      }
+
+      if (
+        result.dashboard &&
+        typeof result.dashboard === 'object'
+      ) {
+        return result.dashboard;
+      }
+
+      if (
+        result.current ||
+        result.admin ||
+        result.settings ||
+        result.today ||
+        result.shift
+      ) {
+        return result;
+      }
+
+      return null;
+    }
+
+
+    function runAdminAction(
+      actionName,
+      payload,
+      options
+    ) {
+      const opts = options || {};
+      const buttonId = opts.buttonId || '';
+      const messageId = opts.messageId || '';
+      const processingText =
+        opts.processingText || 'Memproses perubahan...';
+      const successText =
+        opts.successText || 'Perubahan berhasil disimpan.';
+
+      if (!canViewSettings()) {
+        const accessMessage =
+          'Akses pengaturan admin hanya tersedia untuk CS LINE.';
+        showAdminActionMessage(
+          messageId,
+          accessMessage,
+          'warning'
+        );
+        showMessage(
+          'adminSettingsMessage',
+          accessMessage,
+          'warning'
+        );
+        return;
+      }
+
+      clearMessage('adminSettingsMessage');
+      showAdminActionMessage(
+        messageId,
+        processingText,
+        'info'
+      );
+      setAdminActionButtonBusy(
+        buttonId,
+        true,
+        opts.busyButtonText || 'MEMPROSES...'
+      );
+
+      let runner =
+        google.script.run
+          .withSuccessHandler(function (rawResult) {
+            try {
+              const result =
+                normalizeAdminActionResponse(rawResult);
+
+              if (isAdminActionFailure(result)) {
+                const failedMessage =
+                  result && result.message
+                    ? result.message
+                    : 'Server menolak perubahan.';
+
+                showAdminActionMessage(
+                  messageId,
+                  failedMessage,
+                  result && result.type
+                    ? result.type
+                    : 'error'
+                );
+                showMessage(
+                  'adminSettingsMessage',
+                  failedMessage,
+                  result && result.type
+                    ? result.type
+                    : 'error'
+                );
+                return;
+              }
+
+              if (
+                result &&
+                result.ipSettings
+              ) {
+                renderAdminIpSettings(
+                  result.ipSettings
+                );
+              }
+
+              const nextDashboard =
+                getAdminDashboardFromResponse(result);
+
+              if (nextDashboard) {
+                renderDashboard(nextDashboard);
+              }
+
+              if (
+                typeof opts.onSuccess === 'function'
+              ) {
+                opts.onSuccess(result || {});
+              }
+
+              const message =
+                result && result.message
+                  ? result.message
+                  : successText;
+
+              showAdminActionMessage(
+                messageId,
+                message,
+                'success'
+              );
+              showMessage(
+                'adminSettingsMessage',
+                message,
+                'success'
+              );
+
+              /*
+               * Beberapa backend hanya mengembalikan {ok,message}.
+               * Sinkronkan dashboard agar dropdown / angka langsung berubah.
+               */
+              if (
+                opts.refresh !== false &&
+                !nextDashboard
+              ) {
+                setTimeout(function () {
+                  refreshDashboard(false);
+                }, 220);
+              }
+            } catch (error) {
+              const message =
+                getAdminActionErrorMessage(
+                  error,
+                  actionName
+                );
+
+              console.error(
+                'Gagal memproses respons ' + actionName + ':',
+                error
+              );
+
+              showAdminActionMessage(
+                messageId,
+                message,
+                'error'
+              );
+              showMessage(
+                'adminSettingsMessage',
+                message,
+                'error'
+              );
+            } finally {
+              setAdminActionButtonBusy(
+                buttonId,
+                false
+              );
+            }
+          })
+          .withFailureHandler(function (error) {
+            setAdminActionButtonBusy(
+              buttonId,
+              false
+            );
+
+            const message =
+              getAdminActionErrorMessage(
+                error,
+                actionName
+              );
+
+            showAdminActionMessage(
+              messageId,
+              message,
+              'error'
+            );
+            showMessage(
+              'adminSettingsMessage',
+              message,
+              'error'
+            );
+          });
+
+      try {
+        runner[actionName](
+          payload === undefined
+            ? {}
+            : payload
+        );
+      } catch (error) {
+        setAdminActionButtonBusy(
+          buttonId,
+          false
+        );
+
+        const message =
+          getAdminActionErrorMessage(
+            error,
+            actionName
+          );
+
+        showAdminActionMessage(
+          messageId,
+          message,
+          'error'
+        );
+        showMessage(
+          'adminSettingsMessage',
+          message,
+          'error'
+        );
+      }
+    }
+
+
     function adminUseCurrentIp() {
       const input =
         document.getElementById(
@@ -9368,257 +9782,163 @@
 
       const currentIp =
         String(
-          currentIpSettings.currentIp ||
-          ''
+          currentIpSettings.currentIp || ''
         ).trim();
 
-      if (
-        !currentIp ||
-        currentIp === '-'
-      ) {
-        showMessage(
-          'adminSettingsMessage',
+      if (!currentIp || currentIp === '-') {
+        showAdminActionMessage(
+          'adminIpMessage',
           'IP saat ini belum dapat dikenali.',
           'warning'
         );
-
         return;
       }
 
-      input.value =
-        currentIp;
+      input.value = currentIp;
+      showAdminActionMessage(
+        'adminIpMessage',
+        'IP saat ini sudah dimasukkan ke kolom. Tekan TAMBAH IP untuk menyimpan.',
+        'info'
+      );
     }
 
 
     function adminAddIp() {
       const input =
-        document.getElementById(
-          'adminIpInput'
-        );
-
+        document.getElementById('adminIpInput');
       const description =
-        document.getElementById(
-          'adminIpDescription'
-        );
+        document.getElementById('adminIpDescription');
 
       const ip =
-        String(
-          input
-            ? input.value
-            : ''
-        ).trim();
+        String(input ? input.value : '').trim();
+      const note =
+        String(description ? description.value : '').trim();
 
       if (!ip) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminActionMessage(
+          'adminIpMessage',
           'Isi IP yang akan diizinkan.',
           'warning'
         );
-
+        if (input) input.focus();
         return;
       }
 
-      setLoading(
-        true
+      runAdminAction(
+        'adminTambahIp',
+        Object.assign(
+          getAdminPayload(),
+          { ip: ip, keterangan: note }
+        ),
+        {
+          buttonId: 'adminAddIpButton',
+          messageId: 'adminIpMessage',
+          processingText: 'Menambahkan IP ' + ip + '...',
+          busyButtonText: 'MENAMBAHKAN...',
+          successText: 'IP berhasil ditambahkan.',
+          onSuccess: function (result) {
+            if (input) input.value = '';
+            if (description) description.value = '';
+            if (result && result.ipSettings) {
+              renderAdminIpSettings(result.ipSettings);
+            } else {
+              setTimeout(loadAdminIpSettings, 180);
+            }
+          }
+        }
       );
-
-      google.script.run
-        .withSuccessHandler(
-          function (result) {
-            try {
-              if (input) {
-                input.value =
-                  '';
-              }
-
-              if (description) {
-                description.value =
-                  '';
-              }
-
-              renderAdminIpSettings(
-                result.ipSettings
-              );
-
-              showMessage(
-                'adminSettingsMessage',
-                result.message ||
-                'IP berhasil ditambahkan.',
-                'success'
-              );
-            } finally {
-              setLoading(
-                false
-              );
-            }
-          }
-        )
-        .withFailureHandler(
-          function (error) {
-            handleServerError(
-              error,
-              'adminSettingsMessage'
-            );
-          }
-        )
-        .adminTambahIp(
-          Object.assign(
-            getAdminPayload(),
-            {
-              ip:
-                ip,
-
-              keterangan:
-                description
-                  ? description.value
-                  : ''
-            }
-          )
-        );
     }
 
 
     function adminDeleteIp() {
       const select =
-        document.getElementById(
-          'adminAllowedIpSelect'
-        );
-
+        document.getElementById('adminAllowedIpSelect');
       const option =
-        select &&
-        select.options[
-          select.selectedIndex
-        ];
+        select && select.options[select.selectedIndex];
 
-      if (
-        !select ||
-        !select.value ||
-        !option
-      ) {
-        showMessage(
-          'adminSettingsMessage',
+      if (!select || !select.value || !option) {
+        showAdminActionMessage(
+          'adminIpMessage',
           'Pilih IP yang akan dihapus.',
           'warning'
         );
-
         return;
       }
 
-      setLoading(
-        true
+      const ip = option.dataset.ip || option.textContent || '';
+
+      if (!window.confirm('Hapus IP yang dipilih: ' + ip + '?')) {
+        return;
+      }
+
+      runAdminAction(
+        'adminHapusIp',
+        Object.assign(
+          getAdminPayload(),
+          {
+            rowNumber: Number(select.value),
+            ip: option.dataset.ip || ''
+          }
+        ),
+        {
+          buttonId: 'adminDeleteIpButton',
+          messageId: 'adminIpMessage',
+          processingText: 'Menghapus IP...',
+          busyButtonText: 'MENGHAPUS...',
+          successText: 'IP berhasil dihapus.',
+          onSuccess: function (result) {
+            if (result && result.ipSettings) {
+              renderAdminIpSettings(result.ipSettings);
+            } else {
+              setTimeout(loadAdminIpSettings, 180);
+            }
+          }
+        }
       );
-
-      google.script.run
-        .withSuccessHandler(
-          function (result) {
-            try {
-              renderAdminIpSettings(
-                result.ipSettings
-              );
-
-              showMessage(
-                'adminSettingsMessage',
-                result.message ||
-                'IP berhasil dihapus.',
-                'success'
-              );
-            } finally {
-              setLoading(
-                false
-              );
-            }
-          }
-        )
-        .withFailureHandler(
-          function (error) {
-            handleServerError(
-              error,
-              'adminSettingsMessage'
-            );
-          }
-        )
-        .adminHapusIp(
-          Object.assign(
-            getAdminPayload(),
-            {
-              rowNumber:
-                Number(
-                  select.value
-                ),
-
-              ip:
-                option.dataset.ip ||
-                ''
-            }
-          )
-        );
     }
 
 
     function adminToggleIpRestriction() {
       const enabled =
-        !Boolean(
-          currentIpSettings.enabled
-        );
+        !Boolean(currentIpSettings.enabled);
 
       if (
         enabled &&
-        !(
-          currentIpSettings.allowedIps ||
-          []
-        ).length
+        !(currentIpSettings.allowedIps || []).length
       ) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminActionMessage(
+          'adminIpMessage',
           'Tambahkan minimal 1 IP sebelum mengaktifkan pembatasan.',
           'warning'
         );
-
         return;
       }
 
-      setLoading(
-        true
+      runAdminAction(
+        'adminSetIpRestriction',
+        Object.assign(
+          getAdminPayload(),
+          { enabled: enabled }
+        ),
+        {
+          buttonId: 'adminIpToggleButton',
+          messageId: 'adminIpMessage',
+          processingText: enabled
+            ? 'Mengaktifkan pembatasan IP...'
+            : 'Menonaktifkan pembatasan IP...',
+          busyButtonText: 'MEMPROSES...',
+          successText: enabled
+            ? 'Pembatasan IP berhasil diaktifkan.'
+            : 'Pembatasan IP berhasil dinonaktifkan.',
+          onSuccess: function (result) {
+            if (result && result.ipSettings) {
+              renderAdminIpSettings(result.ipSettings);
+            } else {
+              setTimeout(loadAdminIpSettings, 180);
+            }
+          }
+        }
       );
-
-      google.script.run
-        .withSuccessHandler(
-          function (result) {
-            try {
-              renderAdminIpSettings(
-                result.ipSettings
-              );
-
-              showMessage(
-                'adminSettingsMessage',
-                result.message ||
-                'Pengaturan IP berhasil diperbarui.',
-                'success'
-              );
-            } finally {
-              setLoading(
-                false
-              );
-            }
-          }
-        )
-        .withFailureHandler(
-          function (error) {
-            handleServerError(
-              error,
-              'adminSettingsMessage'
-            );
-          }
-        )
-        .adminSetIpRestriction(
-          Object.assign(
-            getAdminPayload(),
-            {
-              enabled:
-                enabled
-            }
-          )
-        );
     }
 
 
@@ -9688,20 +10008,35 @@
 
 
     function adminRefreshSuccess(
-      result,
+      rawResult,
       fallbackMessage
     ) {
       try {
-        renderDashboard(
-          result.dashboard
-        );
+        const result =
+          normalizeAdminActionResponse(rawResult);
+
+        const nextDashboard =
+          getAdminDashboardFromResponse(result);
+
+        if (nextDashboard) {
+          renderDashboard(nextDashboard);
+        } else {
+          setTimeout(function () {
+            refreshDashboard(false);
+          }, 220);
+        }
 
         showMessage(
           'adminSettingsMessage',
-          result.message ||
-            fallbackMessage ||
-            'Perubahan berhasil disimpan.',
-          result.type || 'success'
+          result && result.message
+            ? result.message
+            : (
+                fallbackMessage ||
+                'Perubahan berhasil disimpan.'
+              ),
+          result && result.type
+            ? result.type
+            : 'success'
         );
       } finally {
         setLoading(false);
@@ -9711,32 +10046,27 @@
 
     function adminDeletePermission() {
       const select =
-        document.getElementById(
-          'adminDeletePermissionSelect'
-        );
-
+        document.getElementById('adminDeletePermissionSelect');
       const option =
-        select &&
-        select.options[
-          select.selectedIndex
-        ];
+        select && select.options[select.selectedIndex];
 
-      if (
-        !select ||
-        !select.value ||
-        !option
-      ) {
-        showMessage(
-          'adminSettingsMessage',
+      if (!select || !select.value || !option) {
+        showAdminActionMessage(
+          'adminDeletePermissionMessage',
           'Pilih data jam izin yang akan dihapus.',
           'warning'
         );
         return;
       }
 
+      const label =
+        String(option.textContent || 'data izin').trim();
+
       if (
-        !confirm(
-          'Hapus data jam izin yang dipilih? Data ini akan dihapus dari sheet IZIN.'
+        !window.confirm(
+          'Hapus data jam izin ini?\n\n' +
+          label +
+          '\n\nData akan hilang dari riwayat dan jatah shift ikut dihitung ulang.'
         )
       ) {
         return;
@@ -9746,35 +10076,23 @@
         Object.assign(
           getAdminPayload(),
           {
-            rowNumber:
-              Number(select.value),
-
-            targetUsername:
-              option.dataset.username || '',
-
-            startMs:
-              Number(
-                option.dataset.startMs || 0
-              )
+            rowNumber: Number(select.value),
+            targetUsername: option.dataset.username || '',
+            startMs: Number(option.dataset.startMs || 0)
           }
         );
 
-      setLoading(true);
-
-      google.script.run
-        .withSuccessHandler(function (result) {
-          adminRefreshSuccess(
-            result,
-            'Jam izin berhasil dihapus.'
-          );
-        })
-        .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
-          );
-        })
-        .adminHapusJamIzin(payload);
+      runAdminAction(
+        'adminHapusJamIzin',
+        payload,
+        {
+          buttonId: 'adminDeletePermissionButton',
+          messageId: 'adminDeletePermissionMessage',
+          processingText: 'Menghapus data jam izin...',
+          busyButtonText: 'MENGHAPUS...',
+          successText: 'Jam izin berhasil dihapus.'
+        }
+      );
     }
 
 
@@ -9994,6 +10312,16 @@
         return;
       }
 
+      /* Password akun cukup 1 karakter: huruf atau angka diperbolehkan. */
+      if (newPassword.length < 1) {
+        showAdminAddLoginMessage(
+          'Password minimal 1 karakter.',
+          'warning'
+        );
+        passwordInput.focus();
+        return;
+      }
+
       if (/\s/.test(newUsername)) {
         showAdminAddLoginMessage(
           'Username tidak boleh mengandung spasi.',
@@ -10190,218 +10518,263 @@
 
     function adminDeleteLogin() {
       const select =
-        document.getElementById(
-          'adminDeleteLoginSelect'
-        );
+        document.getElementById('adminDeleteLoginSelect');
 
-      if (
-        !select ||
-        !select.value
-      ) {
-        showMessage(
-          'adminSettingsMessage',
+      if (!select || !select.value) {
+        showAdminActionMessage(
+          'adminDeleteLoginMessage',
           'Pilih staff yang akan dihapus.',
           'warning'
         );
-
         return;
       }
 
       const selectedName =
-        select.options[
-          select.selectedIndex
-        ]
-          ? select.options[
-              select.selectedIndex
-            ].textContent
-          : 'staff';
+        select.options[select.selectedIndex]
+          ? String(select.options[select.selectedIndex].textContent || '').trim()
+          : select.value;
 
       if (
         !window.confirm(
           'Hapus data login ' +
           selectedName +
-          '?\n\n' +
-          'Akun akan dihapus dari STAFF, tetapi riwayat izin tetap disimpan.'
+          '?\n\nAkun akan dihapus dari STAFF, tetapi riwayat izin tetap disimpan.'
         )
       ) {
         return;
       }
 
-      const payload =
+      runAdminAction(
+        'adminHapusLogin',
         Object.assign(
           getAdminPayload(),
-          {
-            targetUsername:
-              select.value
-          }
-        );
-
-      setLoading(
-        true
+          { targetUsername: select.value }
+        ),
+        {
+          buttonId: 'adminDeleteLoginButton',
+          messageId: 'adminDeleteLoginMessage',
+          processingText: 'Menghapus akun ' + selectedName + '...',
+          busyButtonText: 'MENGHAPUS...',
+          successText: 'Data login berhasil dihapus.'
+        }
       );
-
-      google.script.run
-        .withSuccessHandler(function (result) {
-          adminRefreshSuccess(
-            result,
-            'Data login berhasil dihapus.'
-          );
-        })
-        .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
-          );
-        })
-        .adminHapusLogin(
-          payload
-        );
     }
 
 
     function adminChangeRole() {
-      const payload =
+      const userSelect =
+        document.getElementById('adminRoleUserSelect');
+      const roleSelect =
+        document.getElementById('adminRoleStatusSelect');
+
+      const targetUsername =
+        String(userSelect ? userSelect.value : '').trim();
+      const newStatus =
+        String(roleSelect ? roleSelect.value : '').trim();
+
+      if (!targetUsername) {
+        showAdminActionMessage(
+          'adminRoleMessage',
+          'Pilih staff yang akan diubah jabatannya.',
+          'warning'
+        );
+        return;
+      }
+
+      if (!newStatus) {
+        showAdminActionMessage(
+          'adminRoleMessage',
+          'Pilih jabatan baru.',
+          'warning'
+        );
+        return;
+      }
+
+      const displayName =
+        userSelect && userSelect.options[userSelect.selectedIndex]
+          ? String(userSelect.options[userSelect.selectedIndex].textContent || '').trim()
+          : targetUsername;
+
+      runAdminAction(
+        'adminSetJabatan',
         Object.assign(
           getAdminPayload(),
           {
-            targetUsername:
-              document.getElementById(
-                'adminRoleUserSelect'
-              ).value,
-
-            newStatus:
-              document.getElementById(
-                'adminRoleStatusSelect'
-              ).value
+            targetUsername: targetUsername,
+            newStatus: newStatus
           }
-        );
-
-      setLoading(true);
-
-      google.script.run
-        .withSuccessHandler(function (result) {
-          adminRefreshSuccess(
-            result,
-            'Jabatan berhasil diperbarui.'
-          );
-        })
-        .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
-          );
-        })
-        .adminSetJabatan(payload);
+        ),
+        {
+          buttonId: 'adminRoleSaveButton',
+          messageId: 'adminRoleMessage',
+          processingText:
+            'Mengubah jabatan ' + displayName + ' menjadi ' + newStatus + '...',
+          busyButtonText: 'MENYIMPAN...',
+          successText: 'Jabatan berhasil diperbarui.'
+        }
+      );
     }
 
 
     function adminGrantOverride() {
-      const select = document.getElementById('adminOverrideUserSelect');
+      const select =
+        document.getElementById('adminOverrideUserSelect');
+
       if (!select || !select.value) {
-        showMessage('adminSettingsMessage', 'Pilih staff yang akan diberikan override.', 'warning');
+        showAdminActionMessage(
+          'adminOverrideMessage',
+          'Pilih staff yang akan diberikan override.',
+          'warning'
+        );
         return;
       }
 
-      const payload = Object.assign(getAdminPayload(), {targetUsername: select.value});
-      setLoading(true);
+      const name =
+        select.options[select.selectedIndex]
+          ? String(select.options[select.selectedIndex].textContent || '').trim()
+          : select.value;
 
-      google.script.run
-        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override darurat berhasil diberikan.'); })
-        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
-        .adminSetOverride(payload);
+      runAdminAction(
+        'adminSetOverride',
+        Object.assign(
+          getAdminPayload(),
+          { targetUsername: select.value }
+        ),
+        {
+          buttonId: 'adminGrantOverrideButton',
+          messageId: 'adminOverrideMessage',
+          processingText: 'Memberikan override shift kepada ' + name + '...',
+          busyButtonText: 'MENGIZINKAN...',
+          successText: 'Override darurat berhasil diberikan.'
+        }
+      );
     }
+
 
     function adminRemoveOverride() {
-      const select = document.getElementById('adminOverrideActiveSelect');
-      const option = select && select.options[select.selectedIndex];
+      const select =
+        document.getElementById('adminOverrideActiveSelect');
+      const option =
+        select && select.options[select.selectedIndex];
+
       if (!select || !select.value || !option) {
-        showMessage('adminSettingsMessage', 'Pilih override aktif yang akan dihapus.', 'warning');
+        showAdminActionMessage(
+          'adminOverrideMessage',
+          'Pilih override aktif yang akan dihapus.',
+          'warning'
+        );
         return;
       }
 
-      const payload = Object.assign(getAdminPayload(), {
-        rowNumber: Number(select.value),
-        targetUsername: option.dataset.username || ''
-      });
-
-      setLoading(true);
-      google.script.run
-        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override berhasil dihapus.'); })
-        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
-        .adminHapusOverride(payload);
-    }
-
-    function adminEnableArchive() {
-      setLoading(true);
-      google.script.run
-        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Arsip otomatis berhasil diaktifkan.'); })
-        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
-        .adminAktifkanArsip(getAdminPayload());
-    }
-
-    function adminSaveDailyLimit() {
-      const payload =
+      runAdminAction(
+        'adminHapusOverride',
         Object.assign(
           getAdminPayload(),
           {
-            batasHarian:
-              Number(
-                document.getElementById(
-                  'adminDailyLimitInput'
-                ).value
-              )
+            rowNumber: Number(select.value),
+            targetUsername: option.dataset.username || ''
           }
+        ),
+        {
+          buttonId: 'adminRemoveOverrideButton',
+          messageId: 'adminOverrideMessage',
+          processingText: 'Menghapus override aktif...',
+          busyButtonText: 'MENGHAPUS...',
+          successText: 'Override berhasil dihapus.'
+        }
+      );
+    }
+
+
+    function adminEnableArchive() {
+      runAdminAction(
+        'adminAktifkanArsip',
+        getAdminPayload(),
+        {
+          buttonId: 'archiveSetupButton',
+          messageId: 'adminArchiveMessage',
+          processingText: 'Mengaktifkan arsip otomatis...',
+          busyButtonText: 'MENGAKTIFKAN...',
+          successText: 'Arsip otomatis berhasil diaktifkan.'
+        }
+      );
+    }
+
+
+    function adminSaveDailyLimit() {
+      const input =
+        document.getElementById('adminDailyLimitInput');
+      const value =
+        Number(input ? input.value : NaN);
+
+      if (
+        !Number.isFinite(value) ||
+        value < 0 ||
+        Math.floor(value) !== value
+      ) {
+        showAdminActionMessage(
+          'adminDailyLimitMessage',
+          'Total izin per shift harus angka bulat 0 atau lebih.',
+          'warning'
         );
+        if (input) input.focus();
+        return;
+      }
 
-      setLoading(true);
-
-      google.script.run
-        .withSuccessHandler(function (result) {
-          adminRefreshSuccess(
-            result,
-            'Total izin per shift berhasil diperbarui.'
-          );
-        })
-        .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
-          );
-        })
-        .adminSetBatasHarian(payload);
+      runAdminAction(
+        'adminSetBatasHarian',
+        Object.assign(
+          getAdminPayload(),
+          { batasHarian: value }
+        ),
+        {
+          buttonId: 'adminDailyLimitSaveButton',
+          messageId: 'adminDailyLimitMessage',
+          processingText: 'Menyimpan total izin per shift...',
+          busyButtonText: 'MENYIMPAN...',
+          successText:
+            value === 0
+              ? 'Total izin per shift diubah menjadi tanpa batas.'
+              : 'Total izin per shift berhasil diubah menjadi ' + value + ' kali.'
+        }
+      );
     }
 
 
     function adminSaveDuration() {
-      const payload =
+      const input =
+        document.getElementById('adminDurationInput');
+      const value =
+        Number(input ? input.value : NaN);
+
+      if (
+        !Number.isFinite(value) ||
+        value < 1 ||
+        Math.floor(value) !== value
+      ) {
+        showAdminActionMessage(
+          'adminDurationMessage',
+          'Durasi izin harus angka bulat minimal 1 menit.',
+          'warning'
+        );
+        if (input) input.focus();
+        return;
+      }
+
+      runAdminAction(
+        'adminSetDurasi',
         Object.assign(
           getAdminPayload(),
-          {
-            batasMenit:
-              Number(
-                document.getElementById(
-                  'adminDurationInput'
-                ).value
-              )
-          }
-        );
-
-      setLoading(true);
-
-      google.script.run
-        .withSuccessHandler(function (result) {
-          adminRefreshSuccess(
-            result,
-            'Durasi izin berhasil diperbarui.'
-          );
-        })
-        .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
-          );
-        })
-        .adminSetDurasi(payload);
+          { batasMenit: value }
+        ),
+        {
+          buttonId: 'adminDurationSaveButton',
+          messageId: 'adminDurationMessage',
+          processingText: 'Menyimpan durasi izin...',
+          busyButtonText: 'MENYIMPAN...',
+          successText: 'Durasi izin berhasil diubah menjadi ' + value + ' menit.'
+        }
+      );
     }
 
 
