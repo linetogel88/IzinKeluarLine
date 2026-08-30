@@ -5731,6 +5731,7 @@
             <select id="adminNewStatus" class="admin-control"></select>
 
             <button
+              id="adminAddLoginButton"
               class="admin-save-btn"
               type="button"
               onclick="adminAddLogin()"
@@ -8422,6 +8423,127 @@
     }
 
 
+    function getHistoryStaffKey(row) {
+      const username =
+        String(
+          row && row.username
+            ? row.username
+            : ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (username) {
+        return 'u:' + username;
+      }
+
+      return (
+        'n:' +
+        String(row && row.nama ? row.nama : '')
+          .trim()
+          .toLowerCase() +
+        '|s:' +
+        String(row && row.status ? row.status : '')
+          .trim()
+          .toLowerCase()
+      );
+    }
+
+
+    function getHistoryPermissionSequence(
+      row,
+      sourceRows,
+      forcePreviousDay
+    ) {
+      const targetKey =
+        getHistoryStaffKey(row);
+
+      const sameStaff =
+        (sourceRows || [])
+          .map(function (item, originalIndex) {
+            return {
+              row: item,
+              originalIndex: originalIndex,
+              key: getHistoryStaffKey(item),
+              startMs: getHistoryRowStartMs(
+                item,
+                Boolean(forcePreviousDay)
+              )
+            };
+          })
+          .filter(function (item) {
+            return item.key === targetKey;
+          });
+
+      if (!sameStaff.length) {
+        return 1;
+      }
+
+      /*
+       * HANYA menghitung nomor izin.
+       * Array asli / urutan tabel TIDAK pernah diubah.
+       */
+      const chronological =
+        sameStaff.slice().sort(function (a, b) {
+          const aStart = Number(a.startMs || 0);
+          const bStart = Number(b.startMs || 0);
+
+          if (aStart > 0 && bStart > 0 && aStart !== bStart) {
+            return aStart - bStart;
+          }
+
+          if (aStart > 0 && !(bStart > 0)) {
+            return -1;
+          }
+
+          if (!(aStart > 0) && bStart > 0) {
+            return 1;
+          }
+
+          return b.originalIndex - a.originalIndex;
+        });
+
+      const objectIndex =
+        chronological.findIndex(function (item) {
+          return item.row === row;
+        });
+
+      if (objectIndex >= 0) {
+        return objectIndex + 1;
+      }
+
+      /*
+       * Fallback bila object pernah disalin oleh browser/server.
+       */
+      const targetStart =
+        getHistoryRowStartMs(
+          row,
+          Boolean(forcePreviousDay)
+        );
+
+      const fallbackIndex =
+        chronological.findIndex(function (item) {
+          if (
+            Number(targetStart || 0) > 0 &&
+            Number(item.startMs || 0) > 0
+          ) {
+            return Number(item.startMs) === Number(targetStart);
+          }
+
+          return (
+            String(item.row && item.row.jamKeluar || '') ===
+              String(row && row.jamKeluar || '') &&
+            String(item.row && item.row.nama || '') ===
+              String(row && row.nama || '')
+          );
+        });
+
+      return fallbackIndex >= 0
+        ? fallbackIndex + 1
+        : sameStaff.length;
+    }
+
+
     function renderShiftHistoryTable() {
       const body = document.getElementById('shiftHistoryTableBody');
       if (!body) return;
@@ -8455,6 +8577,15 @@
             false
           );
 
+        const permissionSequence =
+          view.active
+            ? getHistoryPermissionSequence(
+                row,
+                dashboardData.shift || [],
+                false
+              )
+            : 0;
+
         return `
           <tr
             class="${view.late ? 'permission-late-row' : ''}"
@@ -8471,7 +8602,7 @@
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
-            >${resultBadge(view.result)}</td>
+            >${resultBadge(view.result, permissionSequence)}</td>
           </tr>
         `;
       }).join('');
@@ -8569,6 +8700,15 @@
             false
           );
 
+        const permissionSequence =
+          view.active
+            ? getHistoryPermissionSequence(
+                row,
+                dashboardData.today || [],
+                false
+              )
+            : 0;
+
         return `
           <tr
             class="${view.late ? 'permission-late-row' : ''}"
@@ -8585,7 +8725,7 @@
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
-            >${resultBadge(view.result)}</td>
+            >${resultBadge(view.result, permissionSequence)}</td>
           </tr>
         `;
       }).join('');
@@ -8670,6 +8810,15 @@
             true
           );
 
+        const permissionSequence =
+          view.active
+            ? getHistoryPermissionSequence(
+                row,
+                dashboardData.yesterday || [],
+                true
+              )
+            : 0;
+
         return `
           <tr
             class="${view.late ? 'permission-late-row' : ''}"
@@ -8686,7 +8835,7 @@
             <td
               class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
               data-history-result-cell="1"
-            >${resultBadge(view.result)}</td>
+            >${resultBadge(view.result, permissionSequence)}</td>
           </tr>
         `;
       }).join('');
@@ -9532,58 +9681,259 @@
     }
 
 
+    function setAdminAddLoginBusy(busy) {
+      const button =
+        document.getElementById(
+          'adminAddLoginButton'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      button.disabled =
+        Boolean(busy);
+
+      button.textContent =
+        busy
+          ? 'MENAMBAHKAN...'
+          : 'TAMBAH DATA';
+    }
+
+
     function adminAddLogin() {
+      if (!canViewSettings()) {
+        showMessage(
+          'adminSettingsMessage',
+          'Akses tambah akun hanya tersedia untuk CS LINE.',
+          'warning'
+        );
+        return;
+      }
+
+      const usernameInput =
+        document.getElementById(
+          'adminNewUsername'
+        );
+
+      const passwordInput =
+        document.getElementById(
+          'adminNewPassword'
+        );
+
+      const nameInput =
+        document.getElementById(
+          'adminNewName'
+        );
+
+      const statusSelect =
+        document.getElementById(
+          'adminNewStatus'
+        );
+
+      if (
+        !usernameInput ||
+        !passwordInput ||
+        !nameInput ||
+        !statusSelect
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Form tambah akun belum siap. Silakan refresh halaman.',
+          'error'
+        );
+        return;
+      }
+
+      const newUsername =
+        String(usernameInput.value || '')
+          .trim();
+
+      const newPassword =
+        String(passwordInput.value || '')
+          .trim();
+
+      const newName =
+        String(nameInput.value || '')
+          .trim();
+
+      const newStatus =
+        String(statusSelect.value || '')
+          .trim();
+
+      if (
+        !newUsername ||
+        !newPassword ||
+        !newName ||
+        !newStatus
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Username, password, nama staff, dan jabatan wajib diisi.',
+          'warning'
+        );
+        return;
+      }
+
+      if (/\s/.test(newUsername)) {
+        showMessage(
+          'adminSettingsMessage',
+          'Username tidak boleh mengandung spasi.',
+          'warning'
+        );
+        usernameInput.focus();
+        return;
+      }
+
+      if (
+        !credentials.username ||
+        !credentials.password
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Session admin belum siap. Silakan refresh atau login kembali.',
+          'warning'
+        );
+        return;
+      }
+
+      const existingStaff =
+        dashboardData &&
+        dashboardData.admin &&
+        Array.isArray(dashboardData.admin.staff)
+          ? dashboardData.admin.staff
+          : [];
+
+      const duplicate =
+        existingStaff.some(function (row) {
+          return (
+            String(row.username || '')
+              .trim()
+              .toLowerCase() ===
+            newUsername.toLowerCase()
+          );
+        });
+
+      if (duplicate) {
+        showMessage(
+          'adminSettingsMessage',
+          'Username "' + newUsername + '" sudah terdaftar.',
+          'warning'
+        );
+        usernameInput.focus();
+        return;
+      }
+
       const payload =
         Object.assign(
           getAdminPayload(),
           {
-            newUsername:
-              document.getElementById(
-                'adminNewUsername'
-              ).value,
-
-            newPassword:
-              document.getElementById(
-                'adminNewPassword'
-              ).value,
-
-            newName:
-              document.getElementById(
-                'adminNewName'
-              ).value,
-
-            newStatus:
-              document.getElementById(
-                'adminNewStatus'
-              ).value
+            newUsername: newUsername,
+            newPassword: newPassword,
+            newName: newName,
+            newStatus: newStatus
           }
         );
 
+      clearMessage(
+        'adminSettingsMessage'
+      );
+
+      setAdminAddLoginBusy(true);
       setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
-          document.getElementById(
-            'adminNewUsername'
-          ).value = '';
+          try {
+            if (
+              !result ||
+              result.ok === false ||
+              result.success === false
+            ) {
+              showMessage(
+                'adminSettingsMessage',
+                result && result.message
+                  ? result.message
+                  : 'Akun gagal ditambahkan. Periksa data lalu coba lagi.',
+                result && result.type
+                  ? result.type
+                  : 'warning'
+              );
+              return;
+            }
 
-          document.getElementById(
-            'adminNewPassword'
-          ).value = '';
+            /*
+             * Kosongkan form HANYA setelah server benar-benar sukses.
+             */
+            usernameInput.value = '';
+            passwordInput.value = '';
+            nameInput.value = '';
 
-          document.getElementById(
-            'adminNewName'
-          ).value = '';
+            const nextDashboard =
+              result.dashboard ||
+              (
+                result.data &&
+                result.data.dashboard
+                  ? result.data.dashboard
+                  : null
+              );
 
-          adminRefreshSuccess(
-            result,
-            'Data login berhasil ditambahkan.'
-          );
+            if (nextDashboard) {
+              renderDashboard(
+                nextDashboard
+              );
+            }
+
+            showMessage(
+              'adminSettingsMessage',
+              result.message ||
+                'Data login berhasil ditambahkan.',
+              result.type || 'success'
+            );
+
+            /*
+             * Paksa sinkron ulang agar akun baru langsung muncul,
+             * termasuk saat backend hanya mengembalikan pesan sukses
+             * tanpa snapshot dashboard terbaru.
+             */
+            setTimeout(function () {
+              refreshDashboard(false);
+            }, 250);
+          } catch (error) {
+            console.error(
+              'Gagal memproses hasil tambah akun:',
+              error
+            );
+
+            showMessage(
+              'adminSettingsMessage',
+              'Akun mungkin sudah diproses server, tetapi dashboard gagal diperbarui. Tekan SEGARKAN untuk memastikan.',
+              'warning'
+            );
+          } finally {
+            setAdminAddLoginBusy(false);
+            setLoading(false);
+          }
         })
         .withFailureHandler(function (error) {
-          handleServerError(
-            error,
-            'adminSettingsMessage'
+          setAdminAddLoginBusy(false);
+          setLoading(false);
+
+          const message =
+            error && error.message
+              ? error.message
+              : String(
+                  error ||
+                  'Gagal menambahkan akun.'
+                );
+
+          showMessage(
+            'adminSettingsMessage',
+            message.replace(
+              /^(?:Exception|Error):\s*/i,
+              ''
+            ),
+            'error'
           );
         })
         .adminTambahLogin(payload);
@@ -10767,7 +11117,10 @@
       ).toUpperCase();
     }
 
-    function resultBadge(result) {
+    function resultBadge(
+      result,
+      permissionSequence
+    ) {
       const normalized =
         String(result || '')
           .trim()
@@ -10777,9 +11130,16 @@
         normalized ===
         'SEDANG KELUAR'
       ) {
+        const sequence =
+          Math.max(
+            1,
+            Number(permissionSequence || 1)
+          );
+
         return (
           '<span class="badge running">' +
-          'SEDANG KELUAR' +
+          'SEDANG KELUAR KE-' +
+          sequence +
           '</span>'
         );
       }
