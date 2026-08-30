@@ -3911,6 +3911,134 @@
         0 0 14px rgba(66, 73, 255, .06) !important;
     }
 
+  
+    /* =========================================================
+       FINAL GLASS BALANCE
+       - Card besar kiri dipertahankan
+       - Card kecil dibuat sedikit lebih transparan
+       - Card Jatah Shift dibuat sedikit lebih glass
+    ========================================================= */
+
+    /* Card kecil Informasi Akun */
+    #view-home .quick-dashboard-item,
+    #view-home .quick-dashboard-menu,
+    #view-home .quick-dashboard-date-top .quick-dashboard-item {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(17, 43, 92, .14),
+          rgba(4, 16, 40, .085)
+        ) !important;
+
+      border-color:
+        rgba(105, 138, 244, .30) !important;
+
+      -webkit-backdrop-filter:
+        blur(17px)
+        saturate(138%);
+
+      backdrop-filter:
+        blur(17px)
+        saturate(138%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .048),
+        0 7px 16px rgba(0, 0, 0, .055) !important;
+    }
+
+    /* Card kecil kiri: batas, kapasitas, durasi, status shift */
+    #view-home .shift-duty-card,
+    #view-home .permission-info-grid > *,
+    #view-home .permission-content .info-row,
+    #view-home .time-box {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(16, 41, 88, .135),
+          rgba(4, 16, 39, .075)
+        ) !important;
+
+      border-color:
+        rgba(98, 132, 236, .28) !important;
+
+      -webkit-backdrop-filter:
+        blur(16px)
+        saturate(135%);
+
+      backdrop-filter:
+        blur(16px)
+        saturate(135%);
+    }
+
+    /* Card kanan Jatah Izin Shift Aktif */
+    #view-home .metric-card.green,
+    #view-home .metric-card {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(11, 31, 70, .19),
+          rgba(3, 14, 36, .105)
+        ) !important;
+
+      border-color:
+        rgba(132, 108, 255, .45) !important;
+
+      -webkit-backdrop-filter:
+        blur(21px)
+        saturate(145%);
+
+      backdrop-filter:
+        blur(21px)
+        saturate(145%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .06),
+        inset 0 0 26px rgba(90, 71, 255, .025),
+        0 16px 34px rgba(0, 0, 0, .15),
+        0 0 20px rgba(105, 73, 255, .085) !important;
+    }
+
+    /* Sedikit lebih ringan pada navigation nonaktif */
+    #appView .nav-btn:not(.active) {
+      background:
+        rgba(7, 23, 54, .115) !important;
+
+      border-color:
+        rgba(103, 133, 226, .19) !important;
+    }
+
+    /* Teks tetap tajam di atas kaca */
+    #view-home .quick-dashboard-item strong,
+    #view-home .quick-dashboard-menu strong,
+    #view-home .metric-card strong,
+    #view-home .metric-number,
+    #view-home .info-row strong {
+      text-shadow:
+        0 1px 2px rgba(0, 0, 0, .22);
+    }
+
+  
+    /* ===========================
+       HAPUS DATA LOGIN
+    =========================== */
+    .delete-login-note {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255, 112, 145, .16);
+      border-radius: 10px;
+      color: #8fa4c8;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(91, 24, 49, .10),
+          rgba(5, 18, 43, .08)
+        );
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.55;
+      text-align: center;
+    }
+
   </style>
 
   <!--
@@ -5210,6 +5338,37 @@
             >
               TAMBAH DATA
             </button>
+          </article>
+
+          <article class="admin-action-card danger">
+            <div class="admin-action-head">
+              <div class="admin-action-icon">×</div>
+              <div>
+                <h3>Hapus Data Login</h3>
+                <p>Hapus akun staff dari database STAFF.</p>
+              </div>
+            </div>
+
+            <label class="admin-field-label">Staff</label>
+            <select
+              id="adminDeleteLoginSelect"
+              class="admin-control"
+            >
+              <option value="">Pilih staff</option>
+            </select>
+
+            <button
+              class="admin-save-btn danger"
+              type="button"
+              onclick="adminDeleteLogin()"
+            >
+              HAPUS DATA
+            </button>
+
+            <div class="delete-login-note">
+              Riwayat izin staff tidak ikut dihapus.
+              Akun CS LINE yang sedang digunakan tidak dapat menghapus dirinya sendiri.
+            </div>
           </article>
 
           <article class="admin-action-card">
@@ -7207,6 +7366,57 @@
           '<option value="">Belum ada staff</option>';
       }
 
+      /*
+       * Hapus Data Login:
+       * hanya tampilkan NAMA staff.
+       * Akun yang sedang login tidak dimasukkan.
+       */
+      const currentUsername =
+        String(
+          dashboardData.user &&
+          dashboardData.user.username
+            ? dashboardData.user.username
+            : ''
+        )
+          .trim()
+          .toLowerCase();
+
+      const deleteLoginOptions =
+        (admin.staff || [])
+          .filter(function (row) {
+            return (
+              String(
+                row.username || ''
+              )
+                .trim()
+                .toLowerCase() !==
+              currentUsername
+            );
+          })
+          .map(function (row) {
+            return (
+              '<option value="' +
+              escapeHtml(row.username) +
+              '">' +
+              escapeHtml(
+                getDisplayName(row.nama)
+              ) +
+              '</option>'
+            );
+          })
+          .join('');
+
+      const deleteLoginSelect =
+        document.getElementById(
+          'adminDeleteLoginSelect'
+        );
+
+      if (deleteLoginSelect) {
+        deleteLoginSelect.innerHTML =
+          '<option value="">Pilih staff</option>' +
+          deleteLoginOptions;
+      }
+
       const overrideUserSelect = document.getElementById('adminOverrideUserSelect');
       if (overrideUserSelect) {
         overrideUserSelect.innerHTML = staffOptions || '<option value="">Belum ada staff</option>';
@@ -7968,6 +8178,77 @@
           );
         })
         .adminTambahLogin(payload);
+    }
+
+
+    function adminDeleteLogin() {
+      const select =
+        document.getElementById(
+          'adminDeleteLoginSelect'
+        );
+
+      if (
+        !select ||
+        !select.value
+      ) {
+        showMessage(
+          'adminSettingsMessage',
+          'Pilih staff yang akan dihapus.',
+          'warning'
+        );
+
+        return;
+      }
+
+      const selectedName =
+        select.options[
+          select.selectedIndex
+        ]
+          ? select.options[
+              select.selectedIndex
+            ].textContent
+          : 'staff';
+
+      if (
+        !window.confirm(
+          'Hapus data login ' +
+          selectedName +
+          '?\n\n' +
+          'Akun akan dihapus dari STAFF, tetapi riwayat izin tetap disimpan.'
+        )
+      ) {
+        return;
+      }
+
+      const payload =
+        Object.assign(
+          getAdminPayload(),
+          {
+            targetUsername:
+              select.value
+          }
+        );
+
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Data login berhasil dihapus.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminHapusLogin(
+          payload
+        );
     }
 
 
