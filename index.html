@@ -3198,6 +3198,292 @@
       font-weight: 900;
     }
 
+  
+    /* =========================================================
+       GLASS CARD THEME — MONITORING IZIN
+       Hanya mengubah tampilan card, fungsi tetap sama.
+    ========================================================= */
+
+    :root {
+      --glass-card-bg:
+        linear-gradient(
+          180deg,
+          rgba(8, 24, 58, .58),
+          rgba(3, 14, 37, .52)
+        );
+
+      --glass-card-bg-soft:
+        linear-gradient(
+          180deg,
+          rgba(10, 29, 67, .46),
+          rgba(4, 17, 43, .42)
+        );
+
+      --glass-border:
+        rgba(125, 104, 255, .34);
+
+      --glass-border-soft:
+        rgba(100, 137, 230, .24);
+    }
+
+    /* Card utama */
+    .panel,
+    .quick-dashboard-card,
+    .metric-card,
+    .summary-card,
+    .active-card,
+    .setting-card,
+    .admin-action-card,
+    .system-health-card,
+    .shift-history-panel {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(9, 26, 61, .58),
+          rgba(3, 15, 39, .50)
+        ) !important;
+
+      border-color:
+        rgba(121, 103, 255, .34) !important;
+
+      -webkit-backdrop-filter:
+        blur(16px)
+        saturate(125%);
+
+      backdrop-filter:
+        blur(16px)
+        saturate(125%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .045),
+        inset 0 0 28px rgba(75, 83, 255, .035),
+        0 16px 38px rgba(0, 0, 0, .20),
+        0 0 22px rgba(84, 54, 255, .055) !important;
+    }
+
+    /* Border sedikit lebih hidup untuk 3 card utama */
+    .home-grid > .profile-card,
+    .home-grid > .quick-dashboard-card,
+    .home-grid > .metric-card.green {
+      border-color:
+        rgba(139, 109, 255, .44) !important;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .055),
+        0 18px 42px rgba(0, 0, 0, .22),
+        0 0 24px rgba(96, 60, 255, .075) !important;
+    }
+
+    /* Card-card kecil di dalam Informasi Akun */
+    .quick-dashboard-item,
+    .quick-dashboard-menu,
+    .quick-dashboard-date-top .quick-dashboard-item,
+    .time-box,
+    .shift-duty-card,
+    .admin-control,
+    .admin-global-note,
+    .ip-status-box,
+    .delete-permission-note {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(12, 34, 76, .46),
+          rgba(5, 19, 48, .40)
+        ) !important;
+
+      border-color:
+        rgba(102, 129, 230, .26) !important;
+
+      -webkit-backdrop-filter:
+        blur(12px)
+        saturate(120%);
+
+      backdrop-filter:
+        blur(12px)
+        saturate(120%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .035),
+        0 8px 20px rgba(0, 0, 0, .10) !important;
+    }
+
+    /* Card info pada izin saya */
+    .permission-info-grid > *,
+    .permission-content .info-row,
+    .digital-clock {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(11, 32, 72, .44),
+          rgba(4, 18, 46, .39)
+        ) !important;
+
+      border-color:
+        rgba(95, 129, 229, .25) !important;
+
+      -webkit-backdrop-filter:
+        blur(12px)
+        saturate(120%);
+
+      backdrop-filter:
+        blur(12px)
+        saturate(120%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+    }
+
+    /* Navigation ikut sedikit glass supaya menyatu */
+    .nav-wrap {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(5, 19, 48, .62),
+          rgba(3, 13, 34, .56)
+        ) !important;
+
+      border-color:
+        rgba(117, 97, 255, .28) !important;
+
+      -webkit-backdrop-filter:
+        blur(18px)
+        saturate(130%);
+
+      backdrop-filter:
+        blur(18px)
+        saturate(130%);
+
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, .18),
+        inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+    }
+
+    .nav-btn:not(.active) {
+      background:
+        rgba(9, 25, 58, .38) !important;
+
+      border-color:
+        rgba(101, 126, 218, .18) !important;
+
+      -webkit-backdrop-filter:
+        blur(10px);
+
+      backdrop-filter:
+        blur(10px);
+    }
+
+    /* Tabel riwayat ikut transparan tetapi tetap terbaca */
+    .table-wrap {
+      background:
+        rgba(3, 14, 35, .38) !important;
+
+      border-color:
+        rgba(112, 102, 233, .25) !important;
+
+      -webkit-backdrop-filter:
+        blur(12px);
+
+      backdrop-filter:
+        blur(12px);
+    }
+
+    th {
+      background:
+        rgba(7, 24, 54, .82) !important;
+
+      -webkit-backdrop-filter:
+        blur(14px);
+
+      backdrop-filter:
+        blur(14px);
+    }
+
+    tbody tr:hover {
+      background:
+        rgba(80, 81, 201, .10) !important;
+    }
+
+    /* Tetap pertahankan warna status izin */
+    .permission-status.idle {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(107, 68, 13, .20),
+          rgba(42, 27, 8, .18)
+        ) !important;
+    }
+
+    .permission-status.running {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(6, 108, 76, .18),
+          rgba(4, 48, 38, .16)
+        ) !important;
+    }
+
+    .permission-status.overdue {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(124, 29, 58, .20),
+          rgba(55, 12, 33, .18)
+        ) !important;
+    }
+
+    /* Login card juga dibuat glass, tetapi lebih pekat agar form jelas */
+    .login-card {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(10, 30, 70, .72),
+          rgba(3, 15, 39, .68)
+        ) !important;
+
+      border-color:
+        rgba(121, 104, 255, .40) !important;
+
+      -webkit-backdrop-filter:
+        blur(22px)
+        saturate(125%);
+
+      backdrop-filter:
+        blur(22px)
+        saturate(125%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05),
+        0 28px 75px rgba(0,0,0,.36),
+        0 0 35px rgba(78, 58, 255, .09) !important;
+    }
+
+    /* Input jangan terlalu transparan supaya mudah dibaca */
+    .field-input {
+      background:
+        rgba(3, 16, 41, .70) !important;
+
+      border-color:
+        rgba(92, 126, 216, .27) !important;
+    }
+
+    /* Browser tanpa backdrop-filter tetap aman */
+    @supports not (
+      (backdrop-filter: blur(10px)) or
+      (-webkit-backdrop-filter: blur(10px))
+    ) {
+      .panel,
+      .quick-dashboard-card,
+      .metric-card,
+      .summary-card,
+      .active-card,
+      .setting-card,
+      .admin-action-card,
+      .system-health-card {
+        background:
+          rgba(5, 19, 48, .90) !important;
+      }
+    }
+
   </style>
 
   <!--
