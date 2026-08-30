@@ -4310,6 +4310,68 @@
       z-index: 20;
     }
 
+
+    /* =========================================================
+       FINAL STATUS HASIL + ALERT TELAT
+       - Belum END / belum masuk kembali => SEDANG KELUAR
+       - Batas 20 menit: AMAN sampai 20:59, TELAT mulai 21:00
+       - Kolom HASIL yang telat berkedip merah
+       ========================================================= */
+
+    .badge.running {
+      color: #8fd4ff;
+      background: rgba(24, 149, 255, .13);
+      border: 1px solid rgba(73, 177, 255, .28);
+      box-shadow:
+        inset 0 0 14px rgba(31, 138, 255, .06),
+        0 0 12px rgba(31, 138, 255, .06);
+    }
+
+    td.permission-result-cell {
+      position: relative;
+      isolation: isolate;
+      transition:
+        background .18s ease,
+        box-shadow .18s ease,
+        border-color .18s ease;
+    }
+
+    td.permission-result-cell.late-blink-cell {
+      color: #fff !important;
+      animation: permissionLateCellBlink .92s ease-in-out infinite;
+    }
+
+    td.permission-result-cell.late-blink-cell .badge {
+      color: #fff !important;
+      border-color: rgba(255, 83, 112, .88) !important;
+      background: rgba(164, 15, 47, .76) !important;
+      box-shadow:
+        0 0 0 1px rgba(255, 90, 120, .28) inset,
+        0 0 18px rgba(255, 52, 91, .50),
+        0 0 34px rgba(255, 35, 78, .24) !important;
+      text-shadow:
+        0 0 8px rgba(255, 255, 255, .38),
+        0 0 12px rgba(255, 52, 91, .75);
+    }
+
+    @keyframes permissionLateCellBlink {
+      0%, 100% {
+        background: rgba(94, 8, 31, .22) !important;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 66, 102, .22),
+          inset 0 0 18px rgba(255, 36, 79, .08),
+          0 0 0 rgba(255, 42, 83, 0);
+      }
+
+      50% {
+        background: rgba(177, 12, 48, .72) !important;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 128, 147, .88),
+          inset 0 0 28px rgba(255, 36, 79, .32),
+          0 0 20px rgba(255, 42, 83, .42);
+      }
+    }
+
   </style>
 
   <!--
@@ -7001,7 +7063,14 @@
         popup.classList.add('end');
 
         const result =
-          String(data.hasil || 'AMAN').toUpperCase();
+          normalizeCompletedPermissionResult(
+            data.hasil,
+            data.durasi,
+            dashboardData &&
+            dashboardData.current
+              ? dashboardData.current.batasMenit
+              : 20
+          );
 
         if (result === 'TELAT') {
           popup.classList.add('late');
@@ -7431,7 +7500,11 @@
               Math.max(0, now - startMs)
             ),
           hasil:
-            now > Number(ownActive.deadlineMs)
+            isPermissionLateAt(
+              ownActive,
+              current.batasMenit,
+              now
+            )
               ? 'TELAT'
               : 'AMAN'
         };
@@ -8095,7 +8168,11 @@
         }
       } else {
         const isLate =
-          Date.now() > Number(ownActive.deadlineMs);
+          isPermissionLateAt(
+            ownActive,
+            current.batasMenit,
+            Date.now()
+          );
 
         statusBox.className =
           'permission-status ' +
@@ -8201,9 +8278,15 @@
         if (el) el.textContent = value;
       };
 
+      const normalizedResultStats =
+        countNormalizedHistoryResults(
+          dashboardData.shift || [],
+          false
+        );
+
       setText('shiftSummaryTotal', Number(stats.total || 0));
-      setText('shiftSummarySafe', Number(stats.aman || 0));
-      setText('shiftSummaryLate', Number(stats.telat || 0));
+      setText('shiftSummarySafe', normalizedResultStats.aman);
+      setText('shiftSummaryLate', normalizedResultStats.telat);
       setText('shiftSummaryMine', Number(stats.milikSaya || 0));
 
       const desc = document.getElementById('shiftHistoryDescription');
@@ -8281,10 +8364,17 @@
       const query = String(search ? search.value : '').trim().toLowerCase();
       const rows = (dashboardData.shift || []).filter(function (row) {
         if (!query) return true;
+
+        const view =
+          getHistoryRowView(
+            row,
+            false
+          );
+
         return String(row.nama || '').toLowerCase().includes(query) ||
           String(row.status || '').toLowerCase().includes(query) ||
           String(row.jamKeluar || '').toLowerCase().includes(query) ||
-          String(row.hasil || '').toLowerCase().includes(query);
+          String(view.result || '').toLowerCase().includes(query);
       });
 
       if (!rows.length) {
@@ -8293,15 +8383,26 @@
       }
 
       body.innerHTML = rows.map(function (row) {
+        const view =
+          getHistoryRowView(
+            row,
+            false
+          );
+
         return `
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali)}</td>
-            <td>${escapeHtml(row.jamKembali)}</td>
-            <td>${escapeHtml(row.durasi)}</td>
-            <td>${resultBadge(row.hasil)}</td>
+            <td>${escapeHtml(row.batasKembali || '-')}</td>
+            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
+            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td
+              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
+              data-history-result-cell="1"
+              data-history-active="${view.active ? '1' : '0'}"
+              data-history-start-ms="${Number(view.startMs || 0)}"
+            >${resultBadge(view.result)}</td>
           </tr>
         `;
       }).join('');
@@ -8331,11 +8432,17 @@
       document.getElementById('historyTodaySummaryTotal').textContent =
         stats.total || 0;
 
+      const normalizedResultStats =
+        countNormalizedHistoryResults(
+          dashboardData.today || [],
+          false
+        );
+
       document.getElementById('historyTodaySummarySafe').textContent =
-        stats.aman || 0;
+        normalizedResultStats.aman;
 
       document.getElementById('historyTodaySummaryLate').textContent =
-        stats.telat || 0;
+        normalizedResultStats.telat;
 
       document.getElementById('historyTodaySummaryMine').textContent =
         stats.milikSaya || 0;
@@ -8366,11 +8473,17 @@
             return true;
           }
 
+          const view =
+            getHistoryRowView(
+              row,
+              false
+            );
+
           return (
             String(row.nama || '').toLowerCase().includes(query) ||
             String(row.status || '').toLowerCase().includes(query) ||
             String(row.jamKeluar || '').toLowerCase().includes(query) ||
-            String(row.hasil || '').toLowerCase().includes(query)
+            String(view.result || '').toLowerCase().includes(query)
           );
         });
 
@@ -8381,15 +8494,26 @@
       }
 
       body.innerHTML = rows.map(function (row) {
+        const view =
+          getHistoryRowView(
+            row,
+            false
+          );
+
         return `
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali)}</td>
-            <td>${escapeHtml(row.jamKembali)}</td>
-            <td>${escapeHtml(row.durasi)}</td>
-            <td>${resultBadge(row.hasil)}</td>
+            <td>${escapeHtml(row.batasKembali || '-')}</td>
+            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
+            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td
+              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
+              data-history-result-cell="1"
+              data-history-active="${view.active ? '1' : '0'}"
+              data-history-start-ms="${Number(view.startMs || 0)}"
+            >${resultBadge(view.result)}</td>
           </tr>
         `;
       }).join('');
@@ -8403,11 +8527,17 @@
       document.getElementById('yesterdaySummaryTotal').textContent =
         stats.total || 0;
 
+      const normalizedResultStats =
+        countNormalizedHistoryResults(
+          dashboardData.yesterday || [],
+          true
+        );
+
       document.getElementById('yesterdaySummarySafe').textContent =
-        stats.aman || 0;
+        normalizedResultStats.aman;
 
       document.getElementById('yesterdaySummaryLate').textContent =
-        stats.telat || 0;
+        normalizedResultStats.telat;
 
       document.getElementById('yesterdaySummaryMine').textContent =
         stats.milikSaya || 0;
@@ -8441,11 +8571,17 @@
             return true;
           }
 
+          const view =
+            getHistoryRowView(
+              row,
+              true
+            );
+
           return (
             String(row.nama || '').toLowerCase().includes(query) ||
             String(row.status || '').toLowerCase().includes(query) ||
             String(row.jamKeluar || '').toLowerCase().includes(query) ||
-            String(row.hasil || '').toLowerCase().includes(query)
+            String(view.result || '').toLowerCase().includes(query)
           );
         });
 
@@ -8456,15 +8592,26 @@
       }
 
       body.innerHTML = rows.map(function (row) {
+        const view =
+          getHistoryRowView(
+            row,
+            true
+          );
+
         return `
           <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali)}</td>
-            <td>${escapeHtml(row.jamKembali)}</td>
-            <td>${escapeHtml(row.durasi)}</td>
-            <td>${resultBadge(row.hasil)}</td>
+            <td>${escapeHtml(row.batasKembali || '-')}</td>
+            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
+            <td>${escapeHtml(normalizeHistoryDuration(row, view))}</td>
+            <td
+              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
+              data-history-result-cell="1"
+              data-history-active="${view.active ? '1' : '0'}"
+              data-history-start-ms="${Number(view.startMs || 0)}"
+            >${resultBadge(view.result)}</td>
           </tr>
         `;
       }).join('');
@@ -9635,8 +9782,11 @@
           const deadline =
             Number(element.dataset.deadline);
 
+          const lateDeadline =
+            deadline + 60 * 1000;
+
           const difference =
-            deadline - Date.now();
+            lateDeadline - Date.now();
 
           element.textContent =
             formatCountdown(difference);
@@ -9677,8 +9827,15 @@
           countdown.textContent =
             formatElapsedDuration(elapsed);
 
+          const late =
+            isPermissionLateAt(
+              ownActive,
+              dashboardData.current.batasMenit,
+              Date.now()
+            );
+
           countdown.style.color =
-            difference < 0
+            late
               ? '#ff809d'
               : '#55ffc1';
         }
@@ -9691,7 +9848,11 @@
 
         if (statusBox && statusText) {
           const late =
-            difference < 0;
+            isPermissionLateAt(
+              ownActive,
+              dashboardData.current.batasMenit,
+              Date.now()
+            );
 
           statusBox.className =
             'permission-status ' +
@@ -9703,6 +9864,8 @@
               : 'Status: Izin Sedang Berjalan';
         }
       }
+
+      updateHistoryLateIndicators();
     }
 
     function getPermissionStartMs(
@@ -9746,6 +9909,602 @@
       }
 
       return Date.now();
+    }
+
+
+
+    /*
+     * TELAT DIMULAI DI MENIT KE-21.
+     * Contoh batas 20 menit:
+     * 00:00 - 20:59 = AMAN
+     * 21:00 dan seterusnya = TELAT
+     */
+    function getPermissionLateThresholdMs(
+      permission,
+      limitMinutes
+    ) {
+      const startMs =
+        getPermissionStartMs(
+          permission,
+          limitMinutes
+        );
+
+      const limit =
+        Math.max(
+          0,
+          Number(limitMinutes || 0)
+        );
+
+      return (
+        startMs +
+        (limit + 1) * 60 * 1000
+      );
+    }
+
+
+    function isPermissionLateAt(
+      permission,
+      limitMinutes,
+      nowMs
+    ) {
+      if (!permission) {
+        return false;
+      }
+
+      const now =
+        Number.isFinite(Number(nowMs))
+          ? Number(nowMs)
+          : Date.now();
+
+      return (
+        now >=
+        getPermissionLateThresholdMs(
+          permission,
+          limitMinutes
+        )
+      );
+    }
+
+
+    function isPermissionStillOut(row) {
+      const jamKembali =
+        String(
+          row &&
+          row.jamKembali !== undefined &&
+          row.jamKembali !== null
+            ? row.jamKembali
+            : ''
+        )
+          .trim()
+          .toUpperCase();
+
+      return (
+        !jamKembali ||
+        jamKembali === '-' ||
+        jamKembali === 'BELUM MASUK' ||
+        jamKembali === 'BELUM KEMBALI' ||
+        jamKembali === 'MASIH KELUAR' ||
+        jamKembali === 'SEDANG KELUAR'
+      );
+    }
+
+
+    function normalizeReturnClock(value) {
+      const text =
+        String(
+          value !== undefined &&
+          value !== null
+            ? value
+            : ''
+        ).trim();
+
+      return (
+        !text ||
+        text === '-'
+      )
+        ? '-'
+        : formatClockDisplay(text);
+    }
+
+
+    function parseDurationToMs(value) {
+      const text =
+        String(
+          value !== undefined &&
+          value !== null
+            ? value
+            : ''
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        !text ||
+        text === '-'
+      ) {
+        return null;
+      }
+
+      /*
+       * Format utama aplikasi:
+       * MM:SS
+       * atau HH:MM:SS jika suatu saat backend mengirim jam.
+       */
+      let match =
+        text.match(
+          /^(\d+):(\d{2})(?::(\d{2}))?$/
+        );
+
+      if (match) {
+        if (match[3] !== undefined) {
+          const hours =
+            Number(match[1] || 0);
+
+          const minutes =
+            Number(match[2] || 0);
+
+          const seconds =
+            Number(match[3] || 0);
+
+          return (
+            (
+              hours * 3600 +
+              minutes * 60 +
+              seconds
+            ) * 1000
+          );
+        }
+
+        const minutes =
+          Number(match[1] || 0);
+
+        const seconds =
+          Number(match[2] || 0);
+
+        return (
+          (
+            minutes * 60 +
+            seconds
+          ) * 1000
+        );
+      }
+
+      /*
+       * Fallback jika backend memakai teks:
+       * "21 menit 5 detik", "1 jam 2 menit", dll.
+       */
+      const hoursMatch =
+        text.match(
+          /(\d+)\s*(?:jam|hour|hours)/
+        );
+
+      const minutesMatch =
+        text.match(
+          /(\d+)\s*(?:menit|minute|minutes|min)/
+        );
+
+      const secondsMatch =
+        text.match(
+          /(\d+)\s*(?:detik|second|seconds|sec)/
+        );
+
+      if (
+        hoursMatch ||
+        minutesMatch ||
+        secondsMatch
+      ) {
+        const hours =
+          hoursMatch
+            ? Number(hoursMatch[1] || 0)
+            : 0;
+
+        const minutes =
+          minutesMatch
+            ? Number(minutesMatch[1] || 0)
+            : 0;
+
+        const seconds =
+          secondsMatch
+            ? Number(secondsMatch[1] || 0)
+            : 0;
+
+        return (
+          (
+            hours * 3600 +
+            minutes * 60 +
+            seconds
+          ) * 1000
+        );
+      }
+
+      return null;
+    }
+
+
+    function normalizeCompletedPermissionResult(
+      result,
+      duration,
+      limitMinutes
+    ) {
+      const durationMs =
+        parseDurationToMs(
+          duration
+        );
+
+      const limit =
+        Math.max(
+          0,
+          Number(limitMinutes || 0)
+        );
+
+      if (
+        durationMs !== null
+      ) {
+        return (
+          durationMs >=
+          (limit + 1) * 60 * 1000
+        )
+          ? 'TELAT'
+          : 'AMAN';
+      }
+
+      return (
+        String(result || '')
+          .trim()
+          .toUpperCase() === 'TELAT'
+      )
+        ? 'TELAT'
+        : 'AMAN';
+    }
+
+
+    function getWibDateParts(nowMs) {
+      const parts =
+        new Intl.DateTimeFormat(
+          'en-CA',
+          {
+            timeZone: TZ,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }
+        ).formatToParts(
+          new Date(
+            Number(nowMs || Date.now())
+          )
+        );
+
+      const map = {};
+
+      parts.forEach(function (part) {
+        if (
+          part.type !== 'literal'
+        ) {
+          map[part.type] =
+            Number(part.value);
+        }
+      });
+
+      return {
+        year: map.year,
+        month: map.month,
+        day: map.day
+      };
+    }
+
+
+    function getHistoryRowStartMs(
+      row,
+      forcePreviousDay
+    ) {
+      const direct =
+        Number(
+          row &&
+          row.startMs
+        );
+
+      if (
+        Number.isFinite(direct) &&
+        direct > 0
+      ) {
+        return direct;
+      }
+
+      const clock =
+        formatClockDisplay(
+          row &&
+          row.jamKeluar
+        );
+
+      const match =
+        String(clock || '')
+          .match(
+            /^(\d{2}):(\d{2}):(\d{2})$/
+          );
+
+      if (!match) {
+        return 0;
+      }
+
+      const now =
+        Date.now();
+
+      const parts =
+        getWibDateParts(now);
+
+      /*
+       * WIB = UTC+7.
+       * Date.UTC(..., hour - 7, ...) mengubah jam WIB
+       * menjadi epoch UTC yang benar tanpa tergantung zona browser.
+       */
+      let candidate =
+        Date.UTC(
+          parts.year,
+          parts.month - 1,
+          parts.day,
+          Number(match[1]) - 7,
+          Number(match[2]),
+          Number(match[3])
+        );
+
+      if (forcePreviousDay) {
+        candidate -=
+          24 * 60 * 60 * 1000;
+      } else if (
+        candidate >
+        now + 5 * 60 * 1000
+      ) {
+        /*
+         * Shift yang melewati tengah malam:
+         * bila jam keluar terlihat "lebih besar" dari jam sekarang,
+         * anggap START terjadi pada tanggal sebelumnya.
+         */
+        candidate -=
+          24 * 60 * 60 * 1000;
+      }
+
+      return candidate;
+    }
+
+
+    function getHistoryRowView(
+      row,
+      forcePreviousDay
+    ) {
+      const current =
+        dashboardData &&
+        dashboardData.current
+          ? dashboardData.current
+          : {};
+
+      const limitMinutes =
+        Math.max(
+          0,
+          Number(current.batasMenit || 0)
+        );
+
+      const active =
+        isPermissionStillOut(row);
+
+      const startMs =
+        getHistoryRowStartMs(
+          row,
+          Boolean(forcePreviousDay)
+        );
+
+      let result;
+      let late = false;
+
+      if (active) {
+        /*
+         * WAJIB:
+         * selama belum END / belum ada jam kembali,
+         * HASIL selalu SEDANG KELUAR.
+         */
+        result =
+          'SEDANG KELUAR';
+
+        if (
+          startMs > 0
+        ) {
+          late =
+            Date.now() >=
+            startMs +
+            (limitMinutes + 1) *
+              60 *
+              1000;
+        } else {
+          /*
+           * Fallback terakhir jika startMs tidak tersedia.
+           * Jangan pernah mengubah HASIL aktif menjadi AMAN/TELAT;
+           * hanya efek merah mengikuti hasil backend jika memang TELAT.
+           */
+          late =
+            String(
+              row &&
+              row.hasil
+                ? row.hasil
+                : ''
+            )
+              .trim()
+              .toUpperCase() ===
+            'TELAT';
+        }
+      } else {
+        result =
+          normalizeCompletedPermissionResult(
+            row &&
+            row.hasil,
+            row &&
+            row.durasi,
+            limitMinutes
+          );
+
+        late =
+          result === 'TELAT';
+      }
+
+      return {
+        active: active,
+        result: result,
+        late: late,
+        startMs: startMs,
+        limitMinutes: limitMinutes
+      };
+    }
+
+
+    function normalizeHistoryDuration(
+      row,
+      view
+    ) {
+      if (
+        view &&
+        view.active
+      ) {
+        if (
+          Number(view.startMs || 0) > 0
+        ) {
+          return formatElapsedDuration(
+            Math.max(
+              0,
+              Date.now() -
+              Number(view.startMs)
+            )
+          );
+        }
+
+        const existing =
+          String(
+            row &&
+            row.durasi !== undefined &&
+            row.durasi !== null
+              ? row.durasi
+              : ''
+          ).trim();
+
+        return (
+          existing &&
+          existing !== '-'
+        )
+          ? existing
+          : '00:00';
+      }
+
+      const duration =
+        String(
+          row &&
+          row.durasi !== undefined &&
+          row.durasi !== null
+            ? row.durasi
+            : ''
+        ).trim();
+
+      return duration || '-';
+    }
+
+
+    function countNormalizedHistoryResults(
+      rows,
+      forcePreviousDay
+    ) {
+      const result = {
+        aman: 0,
+        telat: 0,
+        sedangKeluar: 0
+      };
+
+      (rows || [])
+        .forEach(function (row) {
+          const view =
+            getHistoryRowView(
+              row,
+              Boolean(forcePreviousDay)
+            );
+
+          if (
+            view.result === 'TELAT'
+          ) {
+            result.telat += 1;
+          } else if (
+            view.result === 'AMAN'
+          ) {
+            result.aman += 1;
+          } else {
+            result.sedangKeluar += 1;
+          }
+        });
+
+      return result;
+    }
+
+
+    function updateHistoryLateIndicators() {
+      const current =
+        dashboardData &&
+        dashboardData.current
+          ? dashboardData.current
+          : {};
+
+      const limitMinutes =
+        Math.max(
+          0,
+          Number(current.batasMenit || 0)
+        );
+
+      const lateAfterMs =
+        (limitMinutes + 1) *
+        60 *
+        1000;
+
+      document
+        .querySelectorAll(
+          '[data-history-result-cell="1"][data-history-active="1"]'
+        )
+        .forEach(function (cell) {
+          const startMs =
+            Number(
+              cell.dataset.historyStartMs || 0
+            );
+
+          if (
+            !Number.isFinite(startMs) ||
+            startMs <= 0
+          ) {
+            return;
+          }
+
+          cell.classList.toggle(
+            'late-blink-cell',
+            Date.now() - startMs >=
+              lateAfterMs
+          );
+
+          /*
+           * Durasi aktif juga diperbarui ringan setiap detik
+           * tanpa render ulang seluruh tabel / tanpa request server baru.
+           */
+          const row =
+            cell.closest('tr');
+
+          if (row) {
+            const durationCell =
+              row.children &&
+              row.children.length >= 6
+                ? row.children[5]
+                : null;
+
+            if (durationCell) {
+              durationCell.textContent =
+                formatElapsedDuration(
+                  Math.max(
+                    0,
+                    Date.now() - startMs
+                  )
+                );
+            }
+          }
+        });
     }
 
 
@@ -9924,8 +10683,24 @@
     }
 
     function resultBadge(result) {
+      const normalized =
+        String(result || '')
+          .trim()
+          .toUpperCase();
+
+      if (
+        normalized ===
+        'SEDANG KELUAR'
+      ) {
+        return (
+          '<span class="badge running">' +
+          'SEDANG KELUAR' +
+          '</span>'
+        );
+      }
+
       const late =
-        String(result || '').toUpperCase() === 'TELAT';
+        normalized === 'TELAT';
 
       return (
         '<span class="badge ' +
