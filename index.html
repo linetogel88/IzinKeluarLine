@@ -4578,19 +4578,32 @@
 
       async function callAppsScriptApi(
         action,
-        payload
+        payload,
+        retryCount
       ) {
+        const attempt =
+          Math.max(
+            0,
+            Number(retryCount || 0)
+          );
+
         /*
-         * Maksimal tunggu 20 detik agar loading
-         * tidak menggantung tanpa batas.
+         * Pertahankan timeout yang aman. Jangan memalsukan login
+         * sebelum server benar-benar memvalidasi akun/password.
          */
         const controller =
-          new AbortController();
+          typeof AbortController === 'function'
+            ? new AbortController()
+            : null;
 
         const timeoutId =
           setTimeout(
             function () {
-              controller.abort();
+              if (controller) {
+                try {
+                  controller.abort();
+                } catch (ignored) {}
+              }
             },
             20000
           );
@@ -4609,13 +4622,18 @@
                     'application/json',
 
                   'Accept':
-                    'application/json'
+                    'application/json, text/plain, */*'
                 },
 
                 cache: 'no-store',
 
+                credentials:
+                  'same-origin',
+
                 signal:
-                  controller.signal,
+                  controller
+                    ? controller.signal
+                    : undefined,
 
                 body:
                   JSON.stringify({
@@ -4628,10 +4646,11 @@
               }
             );
         } catch (error) {
+          clearTimeout(timeoutId);
+
           if (
             error &&
-            error.name ===
-              'AbortError'
+            error.name === 'AbortError'
           ) {
             throw makeError(
               'Server terlalu lama merespons. Silakan coba lagi.'
@@ -4639,34 +4658,88 @@
           }
 
           throw error;
-        } finally {
-          clearTimeout(
-            timeoutId
+        }
+
+        clearTimeout(timeoutId);
+
+        /*
+         * Jangan langsung response.json(). Pada beberapa cold-start
+         * Vercel/proxy, respons sesaat bisa kosong / text / HTML.
+         * Baca sebagai text dulu agar bisa ditangani dengan aman.
+         */
+        let rawText = '';
+
+        try {
+          rawText =
+            await response.text();
+        } catch (error) {
+          rawText = '';
+        }
+
+        let data = null;
+
+        if (rawText) {
+          try {
+            data =
+              JSON.parse(rawText);
+          } catch (error) {
+            data = null;
+          }
+        }
+
+        /*
+         * Khusus LOGIN: bila cold-start sekali mengembalikan body
+         * kosong/non-JSON, retry SATU KALI otomatis. Tidak ada bypass
+         * password dan tidak mengubah fungsi lain.
+         */
+        if (
+          action === 'login' &&
+          !data &&
+          attempt < 1
+        ) {
+          await new Promise(
+            function (resolve) {
+              setTimeout(resolve, 280);
+            }
+          );
+
+          return callAppsScriptApi(
+            action,
+            payload,
+            attempt + 1
           );
         }
 
-        let data;
+        if (!data) {
+          const contentType =
+            String(
+              response.headers &&
+              response.headers.get
+                ? response.headers.get('content-type') || ''
+                : ''
+            ).toLowerCase();
 
-        try {
-          data =
-            await response.json();
-        } catch (error) {
+          const looksHtml =
+            /text\/html/.test(contentType) ||
+            /^\s*</.test(rawText || '');
+
           throw makeError(
-            'Server mengembalikan respons yang tidak valid.'
+            looksHtml
+              ? 'Endpoint /api/apps-script mengembalikan halaman HTML, bukan data JSON. Coba lagi atau periksa deployment API.'
+              : 'Server mengembalikan respons kosong/tidak valid. Silakan coba lagi.'
           );
         }
 
         if (
           !response.ok ||
-          (
-            data &&
-            data.__apiError === true
-          )
+          data.__apiError === true
         ) {
           throw makeError(
             data && data.message
               ? data.message
-              : 'Permintaan ke server gagal.'
+              : 'Permintaan ke server gagal (HTTP ' +
+                String(response.status || '-') +
+                ').'
           );
         }
 
