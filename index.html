@@ -6236,6 +6236,7 @@
     const SESSION_KEY = 'izinKeluarStaffSession';
     const DASHBOARD_CACHE_KEY = 'izinKeluarStaffDashboardCacheV1';
     const FAST_LOADING_OVERLAY_MS = 360;
+    const LOGIN_LOADING_OVERLAY_MS = 120;
     const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
     const SESSION_RETRY_DELAY_MS = 8000;
 
@@ -6742,8 +6743,8 @@
         setLoading(true);
         scheduleFastLoadingHide(
           cached
-            ? 180
-            : FAST_LOADING_OVERLAY_MS
+            ? 70
+            : 160
         );
       }
 
@@ -7386,7 +7387,7 @@
       setLoginButtonBusy(true);
       setLoading(true);
       scheduleFastLoadingHide(
-        FAST_LOADING_OVERLAY_MS
+        LOGIN_LOADING_OVERLAY_MS
       );
 
       google.script.run
@@ -7416,9 +7417,32 @@
 
             document.getElementById('loginPassword').value = '';
 
+            /*
+             * Server sudah mengizinkan login: lepas loader lebih dulu.
+             * Render dashboard dilakukan di frame berikutnya agar transisi
+             * dari login ke aplikasi terasa langsung dan tidak tertahan DOM paint.
+             */
+            setLoading(false);
+            setLoginButtonBusy(false);
             showApplication();
-            renderDashboard(result.dashboard);
-            startAutoRefresh();
+
+            window.requestAnimationFrame(function () {
+              try {
+                renderDashboard(result.dashboard);
+                startAutoRefresh();
+              } catch (renderError) {
+                console.error(
+                  'Gagal merender dashboard setelah login:',
+                  renderError
+                );
+
+                showMessage(
+                  'appMessage',
+                  'Login berhasil, tetapi dashboard gagal dimuat sempurna. Silakan segarkan halaman.',
+                  'warning'
+                );
+              }
+            });
           } catch (error) {
             console.error(
               'Gagal merender dashboard:',
@@ -7602,6 +7626,19 @@
           navButton.dataset.view === activeNavView
         );
       });
+
+      /*
+       * LOGIN CEPAT / LAZY RENDER:
+       * tabel dan panel berat hanya dirender ketika benar-benar dibuka.
+       * Data dashboard tetap sudah tersimpan di dashboardData.
+       */
+      if (viewName === 'history' && dashboardData) {
+        renderShiftHistorySection();
+      } else if (viewName === 'yesterdayHistory' && dashboardData) {
+        renderYesterdayHistorySection();
+      } else if (viewName === 'settings' && dashboardData && canViewSettings()) {
+        renderSettingsSection();
+      }
     }
 
 
@@ -8239,10 +8276,40 @@
       renderMyPermission();
       renderShiftDutyStatus();
       renderMetricCards();
-      renderShiftHistorySection();
-      renderYesterdayHistorySection();
 
-      if (canViewSettings()) {
+      /*
+       * Jangan render tabel/panel tersembunyi saat login.
+       * Ini mengurangi pekerjaan DOM awal dan mencegah request IP admin
+       * yang tidak diperlukan sebelum tab Pengaturan dibuka.
+       */
+      const historyView =
+        document.getElementById('view-history');
+
+      const yesterdayView =
+        document.getElementById('view-yesterdayHistory');
+
+      const settingsView =
+        document.getElementById('view-settings');
+
+      if (
+        historyView &&
+        !historyView.classList.contains('hidden')
+      ) {
+        renderShiftHistorySection();
+      }
+
+      if (
+        yesterdayView &&
+        !yesterdayView.classList.contains('hidden')
+      ) {
+        renderYesterdayHistorySection();
+      }
+
+      if (
+        canViewSettings() &&
+        settingsView &&
+        !settingsView.classList.contains('hidden')
+      ) {
         renderSettingsSection();
       }
 
