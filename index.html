@@ -3714,6 +3714,105 @@
       z-index: 1;
     }
 
+  
+    /* =========================================================
+       LOGIN CARD — TRANSPARAN SEDANG
+    ========================================================= */
+    .login-card {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(11, 31, 70, .50),
+          rgba(3, 15, 39, .42)
+        ) !important;
+
+      border:
+        1px solid rgba(126, 112, 255, .42) !important;
+
+      -webkit-backdrop-filter:
+        blur(20px)
+        saturate(135%);
+
+      backdrop-filter:
+        blur(20px)
+        saturate(135%);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .055),
+        inset 0 0 32px rgba(84, 72, 255, .025),
+        0 22px 60px rgba(0, 0, 0, .28),
+        0 0 28px rgba(81, 61, 255, .075) !important;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background:
+        linear-gradient(
+          125deg,
+          rgba(255,255,255,.045),
+          transparent 27%,
+          transparent 75%,
+          rgba(123, 84, 255, .025)
+        );
+    }
+
+    .login-card {
+      position: relative;
+      isolation: isolate;
+    }
+
+    /* Input tetap lebih pekat agar tulisan mudah dibaca */
+    .login-card .field-input {
+      background:
+        rgba(3, 15, 38, .64) !important;
+
+      border-color:
+        rgba(94, 126, 218, .30) !important;
+
+      -webkit-backdrop-filter:
+        blur(10px);
+
+      backdrop-filter:
+        blur(10px);
+    }
+
+    .login-card .field-input:focus {
+      background:
+        rgba(4, 18, 46, .70) !important;
+
+      border-color:
+        rgba(91, 107, 255, .68) !important;
+
+      box-shadow:
+        0 0 0 3px rgba(85, 78, 255, .10) !important;
+    }
+
+    /* Box logo ikut sedikit lebih glass */
+    .login-mark {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(17, 38, 82, .34),
+          rgba(6, 18, 46, .24)
+        ) !important;
+
+      border:
+        1px solid rgba(113, 104, 255, .16);
+
+      -webkit-backdrop-filter:
+        blur(12px);
+
+      backdrop-filter:
+        blur(12px);
+
+      box-shadow:
+        0 0 18px rgba(62, 71, 255, .08) !important;
+    }
+
   </style>
 
   <!--
