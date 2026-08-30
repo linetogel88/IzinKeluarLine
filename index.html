@@ -4438,6 +4438,96 @@
       }
     }
 
+  
+
+    /* =========================================================
+       TAMBAH AKUN - STATUS LANGSUNG DI BAWAH TOMBOL
+       ========================================================= */
+    .admin-add-login-message {
+      display: none;
+      margin-top: 10px;
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 1px solid rgba(86, 120, 206, .20);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.45;
+      letter-spacing: .01em;
+      background: rgba(5, 21, 49, .70);
+      transition: .2s ease;
+    }
+
+    .admin-add-login-message.show {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .admin-add-login-message::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: #79a6ff;
+      box-shadow: 0 0 10px rgba(71, 139, 255, .52);
+    }
+
+    .admin-add-login-message.info {
+      color: #a9d8ff;
+      border-color: rgba(62, 145, 255, .28);
+      background: rgba(12, 67, 139, .16);
+    }
+
+    .admin-add-login-message.info::before {
+      background: #5ab5ff;
+      animation: adminAddLoginDot 1s ease-in-out infinite;
+    }
+
+    .admin-add-login-message.success {
+      color: #73ffc0;
+      border-color: rgba(0, 229, 139, .28);
+      background: rgba(0, 131, 85, .15);
+    }
+
+    .admin-add-login-message.success::before {
+      background: #2df0a0;
+      box-shadow: 0 0 12px rgba(45, 240, 160, .58);
+    }
+
+    .admin-add-login-message.warning {
+      color: #ffd67b;
+      border-color: rgba(255, 177, 22, .30);
+      background: rgba(138, 91, 10, .16);
+    }
+
+    .admin-add-login-message.warning::before {
+      background: #ffc14c;
+      box-shadow: 0 0 12px rgba(255, 193, 76, .52);
+    }
+
+    .admin-add-login-message.error {
+      color: #ff9db2;
+      border-color: rgba(255, 73, 111, .34);
+      background: rgba(135, 20, 47, .18);
+    }
+
+    .admin-add-login-message.error::before {
+      background: #ff5579;
+      box-shadow: 0 0 12px rgba(255, 85, 121, .58);
+    }
+
+    #adminAddLoginButton:disabled {
+      cursor: wait;
+      opacity: .82;
+    }
+
+    @keyframes adminAddLoginDot {
+      0%, 100% { opacity: .42; transform: scale(.80); }
+      50% { opacity: 1; transform: scale(1.14); }
+    }
+
   </style>
 
   <!--
@@ -5738,6 +5828,13 @@
             >
               TAMBAH DATA
             </button>
+
+            <div
+              id="adminAddLoginMessage"
+              class="admin-add-login-message"
+              role="status"
+              aria-live="polite"
+            ></div>
           </article>
 
           <article class="admin-action-card danger">
@@ -9701,11 +9798,132 @@
     }
 
 
+    function showAdminAddLoginMessage(
+      message,
+      type
+    ) {
+      const box =
+        document.getElementById(
+          'adminAddLoginMessage'
+        );
+
+      if (!box) {
+        return;
+      }
+
+      const clean =
+        String(message || '')
+          .replace(
+            /^(?:Exception|Error):\s*/i,
+            ''
+          )
+          .trim();
+
+      if (!clean) {
+        box.textContent = '';
+        box.className =
+          'admin-add-login-message';
+        return;
+      }
+
+      box.textContent = clean;
+      box.className =
+        'admin-add-login-message show ' +
+        (type || 'info');
+    }
+
+
+    function getAdminAddLoginResponse(rawResult) {
+      let result = rawResult;
+
+      /*
+       * Bridge /api/apps-script pada deploy berbeda kadang
+       * membungkus hasil di "result" atau "data".
+       * Normalisasi di sini agar Tambah Akun tetap membaca
+       * response yang benar tanpa mengubah fungsi lain.
+       */
+      if (
+        result &&
+        typeof result === 'object' &&
+        result.result &&
+        typeof result.result === 'object'
+      ) {
+        result = result.result;
+      } else if (
+        result &&
+        typeof result === 'object' &&
+        result.data &&
+        typeof result.data === 'object' &&
+        (
+          Object.prototype.hasOwnProperty.call(result.data, 'ok') ||
+          Object.prototype.hasOwnProperty.call(result.data, 'success') ||
+          result.data.message ||
+          result.data.dashboard
+        )
+      ) {
+        result = result.data;
+      }
+
+      return result;
+    }
+
+
+    function getAdminAddLoginErrorMessage(error) {
+      const raw =
+        error && error.message
+          ? error.message
+          : String(
+              error ||
+              'Gagal menambahkan akun.'
+            );
+
+      const message =
+        raw.replace(
+          /^(?:Exception|Error):\s*/i,
+          ''
+        );
+
+      const lower =
+        message.toLowerCase();
+
+      if (
+        lower.includes('admintambahlogin') &&
+        (
+          lower.includes('not found') ||
+          lower.includes('unknown') ||
+          lower.includes('tidak ditemukan') ||
+          lower.includes('not allowed') ||
+          lower.includes('tidak diizinkan')
+        )
+      ) {
+        return (
+          'Backend belum menerima action adminTambahLogin. ' +
+          'Perlu menambahkan action tersebut pada /api/apps-script atau Code.gs.'
+        );
+      }
+
+      return message;
+    }
+
+
     function adminAddLogin() {
+      showAdminAddLoginMessage(
+        '',
+        'info'
+      );
+
       if (!canViewSettings()) {
+        const message =
+          'Akses tambah akun hanya tersedia untuk CS LINE.';
+
+        showAdminAddLoginMessage(
+          message,
+          'warning'
+        );
+
         showMessage(
           'adminSettingsMessage',
-          'Akses tambah akun hanya tersedia untuk CS LINE.',
+          message,
           'warning'
         );
         return;
@@ -9737,9 +9955,11 @@
         !nameInput ||
         !statusSelect
       ) {
-        showMessage(
-          'adminSettingsMessage',
-          'Form tambah akun belum siap. Silakan refresh halaman.',
+        const message =
+          'Form tambah akun belum siap. Silakan refresh halaman.';
+
+        showAdminAddLoginMessage(
+          message,
           'error'
         );
         return;
@@ -9767,8 +9987,7 @@
         !newName ||
         !newStatus
       ) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminAddLoginMessage(
           'Username, password, nama staff, dan jabatan wajib diisi.',
           'warning'
         );
@@ -9776,8 +9995,7 @@
       }
 
       if (/\s/.test(newUsername)) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminAddLoginMessage(
           'Username tidak boleh mengandung spasi.',
           'warning'
         );
@@ -9789,8 +10007,7 @@
         !credentials.username ||
         !credentials.password
       ) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminAddLoginMessage(
           'Session admin belum siap. Silakan refresh atau login kembali.',
           'warning'
         );
@@ -9815,8 +10032,7 @@
         });
 
       if (duplicate) {
-        showMessage(
-          'adminSettingsMessage',
+        showAdminAddLoginMessage(
           'Username "' + newUsername + '" sudah terdaftar.',
           'warning'
         );
@@ -9839,31 +10055,55 @@
         'adminSettingsMessage'
       );
 
+      showAdminAddLoginMessage(
+        'Menambahkan akun "' +
+          newUsername +
+          '" sebagai ' +
+          newStatus +
+          '...',
+        'info'
+      );
+
       setAdminAddLoginBusy(true);
-      setLoading(true);
 
       google.script.run
-        .withSuccessHandler(function (result) {
+        .withSuccessHandler(function (rawResult) {
           try {
+            const result =
+              getAdminAddLoginResponse(
+                rawResult
+              );
+
             if (
               !result ||
               result.ok === false ||
-              result.success === false
+              result.success === false ||
+              result.error === true
             ) {
-              showMessage(
-                'adminSettingsMessage',
+              const message =
                 result && result.message
                   ? result.message
-                  : 'Akun gagal ditambahkan. Periksa data lalu coba lagi.',
+                  : 'Akun gagal ditambahkan. Server tidak mengembalikan status sukses.';
+
+              showAdminAddLoginMessage(
+                message,
                 result && result.type
                   ? result.type
-                  : 'warning'
+                  : 'error'
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                message,
+                result && result.type
+                  ? result.type
+                  : 'error'
               );
               return;
             }
 
             /*
-             * Kosongkan form HANYA setelah server benar-benar sukses.
+             * Form hanya dibersihkan sesudah server sukses.
              */
             usernameInput.value = '';
             passwordInput.value = '';
@@ -9884,17 +10124,29 @@
               );
             }
 
+            const successMessage =
+              result.message ||
+              (
+                'Akun "' +
+                newUsername +
+                '" berhasil ditambahkan sebagai ' +
+                newStatus +
+                '.'
+              );
+
+            showAdminAddLoginMessage(
+              successMessage,
+              'success'
+            );
+
             showMessage(
               'adminSettingsMessage',
-              result.message ||
-                'Data login berhasil ditambahkan.',
-              result.type || 'success'
+              successMessage,
+              'success'
             );
 
             /*
-             * Paksa sinkron ulang agar akun baru langsung muncul,
-             * termasuk saat backend hanya mengembalikan pesan sukses
-             * tanpa snapshot dashboard terbaru.
+             * Sinkronkan daftar staff / dropdown setelah insert.
              */
             setTimeout(function () {
               refreshDashboard(false);
@@ -9905,34 +10157,30 @@
               error
             );
 
-            showMessage(
-              'adminSettingsMessage',
-              'Akun mungkin sudah diproses server, tetapi dashboard gagal diperbarui. Tekan SEGARKAN untuk memastikan.',
+            showAdminAddLoginMessage(
+              'Akun mungkin sudah diproses server, tetapi respons gagal dibaca. Tekan SEGARKAN untuk memastikan.',
               'warning'
             );
           } finally {
             setAdminAddLoginBusy(false);
-            setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
           setAdminAddLoginBusy(false);
-          setLoading(false);
 
           const message =
-            error && error.message
-              ? error.message
-              : String(
-                  error ||
-                  'Gagal menambahkan akun.'
-                );
+            getAdminAddLoginErrorMessage(
+              error
+            );
+
+          showAdminAddLoginMessage(
+            message,
+            'error'
+          );
 
           showMessage(
             'adminSettingsMessage',
-            message.replace(
-              /^(?:Exception|Error):\s*/i,
-              ''
-            ),
+            message,
             'error'
           );
         })
