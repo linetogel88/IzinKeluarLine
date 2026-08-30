@@ -2694,6 +2694,23 @@
       color: #ffffff;
     }
 
+    .action-btn.action-queued:disabled {
+      opacity: 1;
+      cursor: wait;
+      color: #ffffff;
+      filter: saturate(1.08);
+    }
+
+    .start-btn.action-queued:disabled {
+      background: linear-gradient(90deg, #0f79ff, #5c3cff);
+      box-shadow: 0 0 28px rgba(24, 112, 255, .28);
+    }
+
+    .end-btn.action-queued:disabled {
+      background: linear-gradient(90deg, #12bd78, #07955a);
+      box-shadow: 0 0 28px rgba(0, 229, 139, .20);
+    }
+
     .start-btn.action-busy:disabled {
       background: linear-gradient(90deg, #0f79ff, #4c42ff);
       box-shadow: 0 0 30px rgba(16, 102, 255, .30);
@@ -5989,7 +6006,7 @@
      */
     let permissionLoadingTimer = null;
     let permissionLoadingMode = '';
-    const PERMISSION_FULLSCREEN_LOADING_MS = 420;
+    const PERMISSION_FULLSCREEN_LOADING_MS = 260;
 
     let ipSettingsLoading = false;
     let currentIpSettings = {
@@ -6929,9 +6946,15 @@
       const data = details || {};
 
       if (type === 'start') {
-        title.textContent = 'Izin Dimulai';
+        title.textContent =
+          data.pending
+            ? 'START Diterima'
+            : 'Izin Dimulai';
+
         subtitle.textContent =
-          'Jam keluar berhasil dicatat. Durasi keluar mulai berjalan.';
+          data.pending
+            ? 'Jam keluar langsung ditampilkan. Penyimpanan server berjalan di belakang.'
+            : 'Jam keluar berhasil dicatat. Durasi keluar mulai berjalan.';
 
         detailBox.innerHTML = `
           <div class="action-popup-row">
@@ -6957,9 +6980,15 @@
           popup.classList.add('late');
         }
 
-        title.textContent = 'Izin Selesai';
+        title.textContent =
+          data.pending
+            ? 'END Diterima'
+            : 'Izin Selesai';
+
         subtitle.textContent =
-          'Jam kembali berhasil dicatat dan izin telah ditutup.';
+          data.pending
+            ? 'Jam kembali langsung ditampilkan. Penyimpanan server berjalan di belakang.'
+            : 'Jam kembali berhasil dicatat dan izin telah ditutup.';
 
         detailBox.innerHTML = `
           <div class="action-popup-row">
@@ -7305,6 +7334,210 @@
     }
 
 
+    function getWibClockText(timestamp) {
+      try {
+        return new Intl.DateTimeFormat(
+          'id-ID',
+          {
+            timeZone: TZ,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          }
+        )
+          .format(
+            new Date(timestamp)
+          )
+          .replace(/\./g, ':');
+      } catch (error) {
+        return '-';
+      }
+    }
+
+
+    function renderOptimisticPermissionState() {
+      renderQuickStatus();
+      renderMyPermission();
+      renderMetricCards();
+      updateCountdowns();
+    }
+
+
+    function applyOptimisticPermission(mode) {
+      if (!dashboardData) {
+        return null;
+      }
+
+      const snapshot =
+        dashboardData;
+
+      const current =
+        snapshot.current || {};
+
+      const now =
+        Date.now();
+
+      let details = {};
+      let nextCurrent;
+
+      if (mode === 'end') {
+        const ownActive =
+          current.ownActive;
+
+        if (!ownActive) {
+          return null;
+        }
+
+        const startMs =
+          getPermissionStartMs(
+            ownActive,
+            current.batasMenit
+          );
+
+        details = {
+          pending: true,
+          jamKembali:
+            getWibClockText(now),
+          durasi:
+            formatElapsedDuration(
+              Math.max(0, now - startMs)
+            ),
+          hasil:
+            now > Number(ownActive.deadlineMs)
+              ? 'TELAT'
+              : 'AMAN'
+        };
+
+        nextCurrent =
+          Object.assign(
+            {},
+            current,
+            {
+              ownActive: null,
+              activeSameRole:
+                Math.max(
+                  0,
+                  Number(current.activeSameRole || 0) - 1
+                )
+            }
+          );
+      } else {
+        const limitMinutes =
+          Math.max(
+            0,
+            Number(current.batasMenit || 0)
+          );
+
+        const deadlineMs =
+          now + limitMinutes * 60 * 1000;
+
+        const jamKeluar =
+          getWibClockText(now);
+
+        const batasKembali =
+          getWibClockText(deadlineMs);
+
+        const ownActive = {
+          username:
+            currentUser && currentUser.username
+              ? currentUser.username
+              : credentials.username,
+          nama:
+            currentUser && currentUser.nama
+              ? currentUser.nama
+              : '',
+          status:
+            currentUser && currentUser.status
+              ? currentUser.status
+              : '',
+          jamKeluar:
+            jamKeluar,
+          batasKembali:
+            batasKembali,
+          startMs:
+            now,
+          deadlineMs:
+            deadlineMs,
+          optimistic:
+            true
+        };
+
+        details = {
+          pending: true,
+          jamKeluar:
+            jamKeluar,
+          batasKembali:
+            batasKembali
+        };
+
+        nextCurrent =
+          Object.assign(
+            {},
+            current,
+            {
+              ownActive:
+                ownActive,
+              activeSameRole:
+                Number(current.activeSameRole || 0) + 1,
+              ownShiftCount:
+                Number(current.ownShiftCount || 0) + 1,
+              lastPermission:
+                Object.assign(
+                  {},
+                  current.lastPermission || {},
+                  {
+                    jamKeluar:
+                      jamKeluar
+                  }
+                )
+            }
+          );
+      }
+
+      dashboardData =
+        Object.assign(
+          {},
+          snapshot,
+          {
+            current:
+              nextCurrent
+          }
+        );
+
+      renderOptimisticPermissionState();
+      showActionPopup(mode, details);
+
+      showMessage(
+        'appMessage',
+        mode === 'end'
+          ? 'END terkirim. Sinkronisasi berjalan di belakang.'
+          : 'START terkirim. Sinkronisasi berjalan di belakang.',
+        'success'
+      );
+
+      return {
+        snapshot:
+          snapshot,
+        mode:
+          mode
+      };
+    }
+
+
+    function rollbackOptimisticPermission(state) {
+      if (!state || !state.snapshot) {
+        return;
+      }
+
+      dashboardData =
+        state.snapshot;
+
+      closeActionPopup();
+      renderOptimisticPermissionState();
+    }
+
+
     function startPermission() {
       const current = dashboardData && dashboardData.current ? dashboardData.current : {};
 
@@ -7321,20 +7554,26 @@
 
       permissionActionInFlight = true;
       const requestId = createRequestId('START');
+      const optimisticState =
+        applyOptimisticPermission('start');
+
       beginPermissionActionLoading('start');
 
       google.script.run
         .withSuccessHandler(function (result) {
           try {
             showMessage('appMessage', result.message, result.type || (result.ok === false ? 'warning' : 'success'));
-            renderDashboard(result.dashboard);
 
-            if (result.ok !== false) {
-              const ownActive = result.dashboard && result.dashboard.current ? result.dashboard.current.ownActive : null;
-              showActionPopup('start', {
-                jamKeluar: ownActive ? ownActive.jamKeluar : '-',
-                batasKembali: ownActive ? ownActive.batasKembali : '-'
-              });
+            if (result.dashboard) {
+              renderDashboard(result.dashboard);
+            } else if (result.ok === false) {
+              rollbackOptimisticPermission(
+                optimisticState
+              );
+            }
+
+            if (result.ok === false) {
+              closeActionPopup();
             }
           } catch (error) {
             console.error('Gagal memperbarui dashboard:', error);
@@ -7345,9 +7584,17 @@
           }
         })
         .withFailureHandler(function (error) {
+          rollbackOptimisticPermission(
+            optimisticState
+          );
+
           permissionActionInFlight = false;
           finishPermissionActionLoading('start');
           handleServerError(error, 'appMessage');
+
+          setTimeout(function () {
+            refreshDashboard(false);
+          }, 1200);
         })
         .mulaiIzin({
           username: credentials.username,
@@ -7363,6 +7610,9 @@
 
       permissionActionInFlight = true;
       const requestId = createRequestId('END');
+      const optimisticState =
+        applyOptimisticPermission('end');
+
       beginPermissionActionLoading('end');
 
       google.script.run
@@ -7374,33 +7624,16 @@
               result.type || (result.ok === false ? 'warning' : 'success')
             );
 
-            renderDashboard(result.dashboard);
-
-            if (result.ok !== false) {
-              const latestRecord =
-                getLatestOwnTodayRecord(
-                  result.dashboard
-                );
-
-              showActionPopup(
-                'end',
-                {
-                  jamKembali:
-                    latestRecord
-                      ? latestRecord.jamKembali
-                      : '-',
-
-                  durasi:
-                    latestRecord
-                      ? latestRecord.durasi
-                      : '-',
-
-                  hasil:
-                    latestRecord
-                      ? latestRecord.hasil
-                      : 'AMAN'
-                }
+            if (result.dashboard) {
+              renderDashboard(result.dashboard);
+            } else if (result.ok === false) {
+              rollbackOptimisticPermission(
+                optimisticState
               );
+            }
+
+            if (result.ok === false) {
+              closeActionPopup();
             }
           } catch (error) {
             console.error(
@@ -7419,9 +7652,17 @@
           }
         })
         .withFailureHandler(function (error) {
+          rollbackOptimisticPermission(
+            optimisticState
+          );
+
           permissionActionInFlight = false;
           finishPermissionActionLoading('end');
           handleServerError(error, 'appMessage');
+
+          setTimeout(function () {
+            refreshDashboard(false);
+          }, 1200);
         })
         .sudahKembali({
           username: credentials.username,
@@ -9752,6 +9993,10 @@
         Boolean(busy)
       );
 
+      button.classList.remove(
+        'action-queued'
+      );
+
       if (busy) {
         button.disabled = true;
         button.innerHTML =
@@ -9769,6 +10014,34 @@
         button.innerHTML =
           '▶ &nbsp; START';
       }
+    }
+
+
+    function setPermissionActionButtonQueued(mode) {
+      const button =
+        document.getElementById(
+          mode === 'end'
+            ? 'endButton'
+            : 'startButton'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      button.classList.remove(
+        'action-busy'
+      );
+
+      button.classList.add(
+        'action-queued'
+      );
+
+      button.disabled = true;
+      button.innerHTML =
+        mode === 'end'
+          ? '✓ &nbsp; END TERKIRIM'
+          : '✓ &nbsp; START TERKIRIM';
     }
 
 
@@ -9828,9 +10101,9 @@
       );
 
       /*
-       * Fullscreen loader sengaja dibatasi 420 ms.
-       * Jika server masih bekerja, halaman kembali terlihat
-       * dan indikator tetap ada di tombol sampai respons diterima.
+       * Fullscreen loader dibatasi 260 ms.
+       * Setelah itu status optimistis sudah tampil dan tombol berubah
+       * menjadi TERKIRIM, sementara server menyelesaikan sinkronisasi.
        */
       permissionLoadingTimer =
         setTimeout(function () {
@@ -9843,6 +10116,10 @@
 
           loading.classList.add(
             'quick-hide'
+          );
+
+          setPermissionActionButtonQueued(
+            permissionLoadingMode
           );
 
           window.setTimeout(
