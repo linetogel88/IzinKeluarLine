@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Izin Keluar</title>
-  <meta name="theme-color" content="#06142f">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%3Cdefs%3E%0A%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%228%22%20y1%3D%226%22%20x2%3D%2256%22%20y2%3D%2258%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%0A%20%20%3Cstop%20stop-color%3D%22%23178BFF%22%2F%3E%0A%20%20%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%236C35FF%22%2F%3E%0A%20%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2300D99A%22%2F%3E%0A%20%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2258%22%20height%3D%2258%22%20rx%3D%2216%22%20fill%3D%22%2306142F%22%2F%3E%0A%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%2254%22%20height%3D%2254%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22%20opacity%3D%22.22%22%2F%3E%0A%3Cpath%20d%3D%22M18%2017.5h28a5%205%200%200%201%205%205v24a5%205%200%200%201-5%205H18a5%205%200%200%201-5-5v-24a5%205%200%200%201%205-5Z%22%20fill%3D%22%23091B3F%22%20stroke%3D%22%238FC5FF%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M21%2013v9M43%2013v9M14%2027h36%22%20stroke%3D%22%23EAF5FF%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Ccircle%20cx%3D%2232%22%20cy%3D%2238%22%20r%3D%229%22%20fill%3D%22%23102A5C%22%20stroke%3D%22%2365EAC3%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22m27.5%2038.5%203%203%206-7%22%20fill%3D%22none%22%20stroke%3D%22%236BFFCB%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3C%2Fsvg%3E">
 
   <script>
     /*
@@ -138,9 +136,6 @@
 
     html.restoring-session #loading {
       display: grid !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      pointer-events: auto !important;
     }
 
     .app-shell {
@@ -2468,264 +2463,47 @@
     }
 
     /* ===========================
-       LOADING — FAST ACTION FEEDBACK
-       Overlay START / END hanya tampil singkat.
-       Proses server tetap berjalan aman di belakang.
+       LOADING
     =========================== */
 
     .loading {
-      display: grid;
+      display: none;
       position: fixed;
       inset: 0;
       z-index: 9999;
       place-items: center;
-      padding: 18px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 44%, rgba(51, 94, 255, .13), transparent 34%),
-        rgba(1, 6, 19, .42);
-      backdrop-filter: blur(2px);
-      transition:
-        opacity .14s ease,
-        visibility .14s ease;
+      background: rgba(1, 6, 19, .48);
+      backdrop-filter: blur(3px);
     }
 
     .loading.show {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    .loading.quick-hide {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+      display: grid;
     }
 
     .loading-box {
-      position: relative;
-      width: min(330px, calc(100vw - 36px));
-      min-height: 184px;
-      overflow: hidden;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 22px 24px 18px;
-      border: 1px solid rgba(93, 137, 255, .34);
-      border-radius: 22px;
+      gap: 12px;
+      padding: 16px 20px;
+      border: 1px solid rgba(84, 121, 255, .32);
+      border-radius: 13px;
       color: white;
-      background:
-        linear-gradient(180deg, rgba(9, 29, 67, .97), rgba(4, 16, 39, .96));
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 42px rgba(53, 78, 255, .14),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-      transform: translateY(7px) scale(.98);
-      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-      isolation: isolate;
+      background: rgba(7, 21, 53, .94);
+      box-shadow: 0 0 35px rgba(46, 61, 255, .18);
+      font-weight: 800;
     }
 
-    .loading.show .loading-box {
-      transform: translateY(0) scale(1);
-    }
-
-    .loading-box::before {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      inset: -45% -15%;
-      opacity: .48;
-      background:
-        conic-gradient(
-          from 0deg,
-          transparent 0deg 245deg,
-          rgba(69, 139, 255, .32) 285deg,
-          rgba(125, 34, 255, .34) 320deg,
-          transparent 360deg
-        );
-      animation: loadingAuraSpin 2.8s linear infinite;
-    }
-
-    .loading.mode-start .loading-box {
-      border-color: rgba(64, 145, 255, .48);
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 46px rgba(31, 120, 255, .20),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-    }
-
-    .loading.mode-end .loading-box {
-      border-color: rgba(27, 230, 154, .42);
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 46px rgba(0, 229, 139, .17),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-    }
-
-    .loading-orbit {
-      position: relative;
-      width: 64px;
-      height: 64px;
-      display: grid;
-      place-items: center;
-    }
-
-    .loading-orbit::before,
-    .loading-orbit::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-    }
-
-    .loading-orbit::before {
-      inset: 0;
-      border: 2px solid rgba(125, 164, 255, .15);
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,.18);
       border-top-color: #61a3ff;
-      border-right-color: #7d22ff;
-      box-shadow:
-        0 0 20px rgba(61, 128, 255, .24),
-        inset 0 0 14px rgba(61, 128, 255, .08);
-      animation: loadingSpin .66s linear infinite;
-    }
-
-    .loading-orbit::after {
-      inset: 8px;
-      border: 1px solid rgba(255, 255, 255, .11);
-      border-bottom-color: rgba(93, 210, 255, .88);
-      animation: loadingSpinReverse .95s linear infinite;
-    }
-
-    .loading.mode-end .loading-orbit::before {
-      border-top-color: #43ffc0;
-      border-right-color: #0cbf79;
-      box-shadow:
-        0 0 20px rgba(0, 229, 139, .22),
-        inset 0 0 14px rgba(0, 229, 139, .07);
-    }
-
-    .loading-symbol {
-      position: relative;
-      z-index: 2;
-      width: 27px;
-      height: 27px;
-      color: #dceaff;
-      filter: drop-shadow(0 0 7px rgba(94, 164, 255, .42));
-    }
-
-    .loading.mode-end .loading-symbol {
-      color: #9bffd8;
-      filter: drop-shadow(0 0 7px rgba(0, 229, 139, .32));
-    }
-
-    .loading-copy {
-      min-width: 0;
-      text-align: center;
-    }
-
-    .loading-copy strong {
-      display: block;
-      color: #f6f9ff;
-      font-size: 14px;
-      font-weight: 950;
-      letter-spacing: .12em;
-      line-height: 1.25;
-    }
-
-    .loading-copy span {
-      display: block;
-      margin-top: 5px;
-      color: #8ea3cb;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-
-    .loading-progress {
-      position: relative;
-      width: 100%;
-      height: 3px;
-      margin-top: 2px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(98, 127, 190, .11);
-    }
-
-    .loading-progress > i {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 42%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, transparent, #4f99ff, #8a52ff, transparent);
-      box-shadow: 0 0 12px rgba(71, 122, 255, .58);
-      animation: loadingSweep .72s ease-in-out infinite;
-    }
-
-    .loading.mode-end .loading-progress > i {
-      background: linear-gradient(90deg, transparent, #19d995, #79ffd0, transparent);
-      box-shadow: 0 0 12px rgba(0, 229, 139, .48);
-    }
-
-    .action-btn.action-busy:disabled {
-      opacity: .96;
-      cursor: progress;
-      color: #ffffff;
-    }
-
-    .start-btn.action-busy:disabled {
-      background: linear-gradient(90deg, #0f79ff, #4c42ff);
-      box-shadow: 0 0 30px rgba(16, 102, 255, .30);
-    }
-
-    .end-btn.action-busy:disabled {
-      background: linear-gradient(90deg, #12bd78, #07955a);
-      box-shadow: 0 0 30px rgba(0, 229, 139, .22);
-    }
-
-    .btn-mini-spinner {
-      width: 15px;
-      height: 15px;
-      display: inline-block;
-      vertical-align: -2px;
-      margin-right: 8px;
-      border: 2px solid rgba(255,255,255,.28);
-      border-top-color: #ffffff;
       border-radius: 50%;
-      animation: loadingSpin .58s linear infinite;
+      animation: spin .8s linear infinite;
     }
 
-    @keyframes loadingSpin {
+    @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-
-    @keyframes loadingSpinReverse {
-      to { transform: rotate(-360deg); }
-    }
-
-    @keyframes loadingAuraSpin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes loadingSweep {
-      0%   { transform: translateX(-125%); opacity: .45; }
-      50%  { opacity: 1; }
-      100% { transform: translateX(330%); opacity: .45; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .loading,
-      .loading-box,
-      .loading-box::before,
-      .loading-orbit::before,
-      .loading-orbit::after,
-      .loading-progress > i,
-      .btn-mini-spinner {
-        animation: none !important;
-        transition: none !important;
-      }
     }
 
     /* ===========================
@@ -5738,25 +5516,10 @@
     </section>
 </main>
 
-  <div id="loading" class="loading" aria-live="polite" aria-busy="true">
+  <div id="loading" class="loading">
     <div class="loading-box">
-      <div class="loading-orbit" aria-hidden="true">
-        <svg class="loading-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 3v3M17 3v3"></path>
-          <rect x="4" y="5" width="16" height="16" rx="3"></rect>
-          <path d="M4 9h16"></path>
-          <path d="m8.5 14 2.2 2.2 4.8-5"></path>
-        </svg>
-      </div>
-
-      <div class="loading-copy">
-        <strong id="loadingTitle">MEMPROSES</strong>
-        <span id="loadingText">Sinkronisasi data...</span>
-      </div>
-
-      <div class="loading-progress" aria-hidden="true">
-        <i></i>
-      </div>
+      <div class="spinner"></div>
+      Memproses...
     </div>
   </div>
 
@@ -5953,16 +5716,6 @@
     let clockInterval = null;
     let isProcessing = false;
     let permissionActionInFlight = false;
-
-    /*
-     * START / END tetap menunggu hasil server agar aman,
-     * tetapi overlay fullscreen hanya tampil sangat singkat.
-     * Setelah itu indikator kecil tetap hidup di tombol sampai server selesai.
-     */
-    let permissionLoadingTimer = null;
-    let permissionLoadingMode = '';
-    const PERMISSION_FULLSCREEN_LOADING_MS = 420;
-
     let ipSettingsLoading = false;
     let currentIpSettings = {
       enabled: false,
@@ -6859,7 +6612,7 @@
 
       permissionActionInFlight = true;
       const requestId = createRequestId('START');
-      beginPermissionActionLoading('start');
+      setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
@@ -6879,12 +6632,11 @@
             showMessage('appMessage', 'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.', 'warning');
           } finally {
             permissionActionInFlight = false;
-            finishPermissionActionLoading('start');
+            setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
           permissionActionInFlight = false;
-          finishPermissionActionLoading('start');
           handleServerError(error, 'appMessage');
         })
         .mulaiIzin({
@@ -6901,7 +6653,7 @@
 
       permissionActionInFlight = true;
       const requestId = createRequestId('END');
-      beginPermissionActionLoading('end');
+      setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
@@ -6953,12 +6705,11 @@
             );
           } finally {
             permissionActionInFlight = false;
-            finishPermissionActionLoading('end');
+            setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
           permissionActionInFlight = false;
-          finishPermissionActionLoading('end');
           handleServerError(error, 'appMessage');
         })
         .sudahKembali({
@@ -9174,238 +8925,14 @@
       setLoading(false);
     }
 
-    function setLoadingContent(title, text) {
-      const titleElement =
-        document.getElementById('loadingTitle');
-
-      const textElement =
-        document.getElementById('loadingText');
-
-      if (titleElement) {
-        titleElement.textContent =
-          title || 'MEMPROSES';
-      }
-
-      if (textElement) {
-        textElement.textContent =
-          text || 'Sinkronisasi data...';
-      }
-    }
-
-
-    function resetLoadingVisualState() {
-      const loading =
-        document.getElementById('loading');
-
-      if (!loading) {
-        return;
-      }
-
-      loading.classList.remove(
-        'quick-hide',
-        'permission-action',
-        'mode-start',
-        'mode-end'
-      );
-    }
-
-
-    function setPermissionActionButtonBusy(mode, busy) {
-      const button =
-        document.getElementById(
-          mode === 'end'
-            ? 'endButton'
-            : 'startButton'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.classList.toggle(
-        'action-busy',
-        Boolean(busy)
-      );
-
-      if (busy) {
-        button.disabled = true;
-        button.innerHTML =
-          '<span class="btn-mini-spinner"></span>' +
-          (mode === 'end'
-            ? 'MEMPROSES END'
-            : 'MEMPROSES START');
-        return;
-      }
-
-      if (mode === 'end') {
-        button.innerHTML =
-          '■ &nbsp; END';
-      } else {
-        button.innerHTML =
-          '▶ &nbsp; START';
-      }
-    }
-
-
-    function beginPermissionActionLoading(mode) {
-      const loading =
-        document.getElementById('loading');
-
-      if (!loading) {
-        setLoading(true);
-        return;
-      }
-
-      if (permissionLoadingTimer) {
-        clearTimeout(
-          permissionLoadingTimer
-        );
-
-        permissionLoadingTimer = null;
-      }
-
-      permissionLoadingMode =
-        mode === 'end'
-          ? 'end'
-          : 'start';
-
-      isProcessing = true;
-
-      resetLoadingVisualState();
-
-      loading.classList.add(
-        'permission-action',
-        permissionLoadingMode === 'end'
-          ? 'mode-end'
-          : 'mode-start',
-        'show'
-      );
-
-      setLoadingContent(
-        permissionLoadingMode === 'end'
-          ? 'MENYELESAIKAN IZIN'
-          : 'MENCATAT START',
-        permissionLoadingMode === 'end'
-          ? 'Menyimpan jam kembali...'
-          : 'Menyimpan jam keluar...'
-      );
-
-      /*
-       * Tombol langsung memberi feedback.
-       * Tidak ada setTimeout sebelum google.script.run:
-       * request server tetap dikirim secepat mungkin.
-       */
-      updateActionButtons();
-
-      setPermissionActionButtonBusy(
-        permissionLoadingMode,
-        true
-      );
-
-      /*
-       * Fullscreen loader sengaja dibatasi 420 ms.
-       * Jika server masih bekerja, halaman kembali terlihat
-       * dan indikator tetap ada di tombol sampai respons diterima.
-       */
-      permissionLoadingTimer =
-        setTimeout(function () {
-          if (
-            !permissionActionInFlight ||
-            permissionLoadingMode !== mode
-          ) {
-            return;
-          }
-
-          loading.classList.add(
-            'quick-hide'
-          );
-
-          window.setTimeout(
-            function () {
-              if (
-                permissionActionInFlight &&
-                permissionLoadingMode === mode
-              ) {
-                loading.classList.remove(
-                  'show'
-                );
-              }
-            },
-            150
-          );
-        }, PERMISSION_FULLSCREEN_LOADING_MS);
-    }
-
-
-    function finishPermissionActionLoading(mode) {
-      if (permissionLoadingTimer) {
-        clearTimeout(
-          permissionLoadingTimer
-        );
-
-        permissionLoadingTimer = null;
-      }
-
-      const loading =
-        document.getElementById('loading');
-
-      if (loading) {
-        loading.classList.add(
-          'quick-hide'
-        );
-
-        loading.classList.remove(
-          'show'
-        );
-
-        resetLoadingVisualState();
-      }
-
-      setPermissionActionButtonBusy(
-        mode,
-        false
-      );
-
-      permissionLoadingMode = '';
-      isProcessing = false;
-
-      setLoadingContent(
-        'MEMPROSES',
-        'Sinkronisasi data...'
-      );
-
-      updateActionButtons();
-    }
-
-
     function setLoading(show) {
       isProcessing =
         Boolean(show);
 
-      const loading =
-        document.getElementById('loading');
-
-      if (loading) {
-        if (isProcessing) {
-          resetLoadingVisualState();
-
-          setLoadingContent(
-            'MEMPROSES',
-            'Sinkronisasi data...'
-          );
-
-          loading.classList.add(
-            'show'
-          );
-        } else {
-          loading.classList.remove(
-            'show',
-            'quick-hide'
-          );
-
-          resetLoadingVisualState();
-        }
-      }
+      document
+        .getElementById('loading')
+        .classList
+        .toggle('show', isProcessing);
 
       if (!isProcessing) {
         updateActionButtons();
