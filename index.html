@@ -5734,6 +5734,9 @@
     let isProcessing = false;
     let permissionActionInFlight = false;
     let ipSettingsLoading = false;
+    let settingsDataInFlight = false;
+    let settingsDataLoadedAt = 0;
+    const SETTINGS_CACHE_MS = 20000;
     let currentIpSettings = {
       enabled: false,
       currentIp: '-',
@@ -6686,12 +6689,22 @@
        * Halaman login/home tidak perlu menunggu bagian ini.
        */
       if (
-        (
-          viewName ===
-            'settings' ||
-          viewName ===
-            'yesterdayHistory'
-        ) &&
+        viewName ===
+          'settings'
+      ) {
+        /*
+         * Pengaturan langsung tampil.
+         * Data admin dimuat dengan endpoint ringan
+         * tanpa overlay Memproses... satu layar.
+         */
+        renderSettingsSection();
+
+        loadAdminSettingsData(
+          false
+        );
+      } else if (
+        viewName ===
+          'yesterdayHistory' &&
         !fullDashboardLoaded
       ) {
         refreshDashboard(
@@ -7321,8 +7334,22 @@
       renderShiftHistorySection();
       renderYesterdayHistorySection();
 
-      if (canViewSettings()) {
-        renderSettingsSection();
+      if (
+        canViewSettings()
+      ) {
+        const settingsView =
+          document.getElementById(
+            'view-settings'
+          );
+
+        if (
+          settingsView &&
+          !settingsView.classList.contains(
+            'hidden'
+          )
+        ) {
+          renderSettingsSection();
+        }
       }
 
       updateCountdowns();
@@ -7817,6 +7844,178 @@
     }
 
 
+    function isSettingsViewVisible() {
+      const view =
+        document.getElementById(
+          'view-settings'
+        );
+
+      return Boolean(
+        view &&
+        !view.classList.contains(
+          'hidden'
+        )
+      );
+    }
+
+
+    function loadAdminSettingsData(
+      force
+    ) {
+      if (
+        !canViewSettings() ||
+        settingsDataInFlight
+      ) {
+        return;
+      }
+
+      const now =
+        Date.now();
+
+      if (
+        !force &&
+        settingsDataLoadedAt &&
+        (
+          now -
+          settingsDataLoadedAt
+        ) <
+        SETTINGS_CACHE_MS
+      ) {
+        return;
+      }
+
+      settingsDataInFlight =
+        true;
+
+      /*
+       * Jangan gunakan setLoading(true).
+       * Menu Pengaturan tetap dapat dilihat dan di-scroll
+       * sambil data diperbarui.
+       */
+      showMessage(
+        'adminSettingsMessage',
+        'Memuat data pengaturan...',
+        'info'
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            settingsDataInFlight =
+              false;
+
+            try {
+              if (
+                result &&
+                result.sessionToken &&
+                result.sessionToken !==
+                  credentials.sessionToken
+              ) {
+                credentials.sessionToken =
+                  result.sessionToken;
+
+                saveLoginSession(
+                  credentials.username,
+                  credentials.password,
+                  credentials.sessionToken
+                );
+              }
+
+              if (
+                result &&
+                result.settings
+              ) {
+                dashboardData.settings =
+                  result.settings;
+              }
+
+              if (
+                result &&
+                result.admin
+              ) {
+                dashboardData.admin =
+                  result.admin;
+              }
+
+              if (
+                result &&
+                result.current
+              ) {
+                dashboardData.current =
+                  Object.assign(
+                    {},
+                    dashboardData.current ||
+                    {},
+                    result.current
+                  );
+              }
+
+              if (
+                result &&
+                result.ipSettings
+              ) {
+                renderAdminIpSettings(
+                  result.ipSettings
+                );
+              }
+
+              settingsDataLoadedAt =
+                Date.now();
+
+              if (
+                isSettingsViewVisible()
+              ) {
+                renderSettingsSection();
+              }
+
+              clearMessage(
+                'adminSettingsMessage'
+              );
+            } catch (error) {
+              console.error(
+                'Gagal menerapkan data Pengaturan:',
+                error
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                'Data Pengaturan berhasil diterima, tetapi tampilan gagal diperbarui.',
+                'warning'
+              );
+            }
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            settingsDataInFlight =
+              false;
+
+            const message =
+              error &&
+              error.message
+                ? error.message
+                : 'Pengaturan gagal dimuat.';
+
+            showMessage(
+              'adminSettingsMessage',
+              message,
+              'warning'
+            );
+          }
+        )
+        .getAdminSettingsData({
+          adminUsername:
+            credentials.username,
+
+          adminPassword:
+            credentials.password,
+
+          sessionToken:
+            credentials.sessionToken
+        });
+    }
+
+
     function renderSettingsSection() {
       if (!canViewSettings()) {
         return;
@@ -8083,10 +8282,9 @@
       syncAdminSettingInputs();
 
       /*
-       * IP settings diambil terpisah agar IP saat ini berasal
-       * dari request Vercel yang sedang berjalan.
+       * IP sekarang ikut dikirim oleh getAdminSettingsData(),
+       * jadi render tidak lagi membuat request kedua.
        */
-      loadAdminIpSettings();
     }
 
 
@@ -8506,7 +8704,10 @@
           credentials.username,
 
         adminPassword:
-          credentials.password
+          credentials.password,
+
+        sessionToken:
+          credentials.sessionToken
       };
     }
 
@@ -8569,6 +8770,7 @@
       result,
       fallbackMessage
     ) {
+      settingsDataLoadedAt = 0;
       try {
         renderDashboard(
           result.dashboard
