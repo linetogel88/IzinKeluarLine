@@ -13,6 +13,7 @@ const ALLOWED_ACTIONS =
     'login',
     'getDashboardData',
     'getLiveDashboardData',
+    'getAdminSettingsData',
     'mulaiIzin',
     'sudahKembali',
     'gantiPassword',
