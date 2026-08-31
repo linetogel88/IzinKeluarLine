@@ -12,6 +12,7 @@ const ALLOWED_ACTIONS =
   new Set([
     'login',
     'getDashboardData',
+    'getLiveDashboardData',
     'mulaiIzin',
     'sudahKembali',
     'gantiPassword',
@@ -207,34 +208,54 @@ export default {
     }
 
     try {
-      const upstream =
-        await fetch(
-          appsScriptUrl,
-          {
-            method: 'POST',
+      const upstreamController =
+        new AbortController();
 
-            headers: {
-              'Content-Type':
-                'application/json',
-
-              'Accept':
-                'application/json'
-            },
-
-            /*
-             * ContentService Apps Script melakukan redirect
-             * ke googleusercontent.com.
-             */
-            redirect:
-              'follow',
-
-            cache:
-              'no-store',
-
-            body:
-              upstreamBody
-          }
+      const upstreamTimeout =
+        setTimeout(
+          () =>
+            upstreamController.abort(),
+          action ===
+            'getLiveDashboardData'
+            ? 10000
+            : 18000
         );
+
+      let upstream;
+
+      try {
+        upstream =
+          await fetch(
+            appsScriptUrl,
+            {
+              method: 'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json',
+
+                'Accept':
+                  'application/json'
+              },
+
+              redirect:
+                'follow',
+
+              cache:
+                'no-store',
+
+              signal:
+                upstreamController.signal,
+
+              body:
+                upstreamBody
+            }
+          );
+      } finally {
+        clearTimeout(
+          upstreamTimeout
+        );
+      }
 
       const rawText =
         await upstream.text();
