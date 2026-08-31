@@ -6,10 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Izin Keluar</title>
-  <meta name="theme-color" content="#06142f">
-  <link rel="preconnect" href="https://cdn.areabermain.club" crossorigin>
-  <link rel="dns-prefetch" href="//cdn.areabermain.club">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%3Cdefs%3E%0A%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%228%22%20y1%3D%226%22%20x2%3D%2256%22%20y2%3D%2258%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%0A%20%20%3Cstop%20stop-color%3D%22%23178BFF%22%2F%3E%0A%20%20%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%236C35FF%22%2F%3E%0A%20%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2300D99A%22%2F%3E%0A%20%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2258%22%20height%3D%2258%22%20rx%3D%2216%22%20fill%3D%22%2306142F%22%2F%3E%0A%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%2254%22%20height%3D%2254%22%20rx%3D%2214%22%20fill%3D%22url%28%23g%29%22%20opacity%3D%22.22%22%2F%3E%0A%3Cpath%20d%3D%22M18%2017.5h28a5%205%200%200%201%205%205v24a5%205%200%200%201-5%205H18a5%205%200%200%201-5-5v-24a5%205%200%200%201%205-5Z%22%20fill%3D%22%23091B3F%22%20stroke%3D%22%238FC5FF%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M21%2013v9M43%2013v9M14%2027h36%22%20stroke%3D%22%23EAF5FF%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Ccircle%20cx%3D%2232%22%20cy%3D%2238%22%20r%3D%229%22%20fill%3D%22%23102A5C%22%20stroke%3D%22%2365EAC3%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22m27.5%2038.5%203%203%206-7%22%20fill%3D%22none%22%20stroke%3D%22%236BFFCB%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3C%2Fsvg%3E">
 
   <script>
     /*
@@ -18,25 +14,15 @@
      * langsung siapkan tampilan aplikasi, bukan halaman login.
      */
     (function () {
-      const sessionKey =
-        'izinKeluarStaffSession';
-
       try {
         const rawSession =
-          sessionStorage.getItem(sessionKey) ||
-          localStorage.getItem(sessionKey);
+          sessionStorage.getItem('izinKeluarStaffSession');
 
         if (rawSession) {
           const savedSession =
             JSON.parse(rawSession);
 
-          const sessionExpired =
-            savedSession &&
-            savedSession.expiresAt &&
-            Number(savedSession.expiresAt) <= Date.now();
-
           if (
-            !sessionExpired &&
             savedSession &&
             savedSession.username &&
             savedSession.password
@@ -44,14 +30,13 @@
             document.documentElement.classList.add(
               'restoring-session'
             );
-          } else if (sessionExpired) {
-            sessionStorage.removeItem(sessionKey);
-            localStorage.removeItem(sessionKey);
           }
         }
       } catch (error) {
         try {
-          sessionStorage.removeItem(sessionKey);
+          sessionStorage.removeItem(
+            'izinKeluarStaffSession'
+          );
         } catch (ignored) {}
       }
     })();
@@ -151,9 +136,6 @@
 
     html.restoring-session #loading {
       display: grid !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      pointer-events: auto !important;
     }
 
     .app-shell {
@@ -271,12 +253,6 @@
       letter-spacing: .05em;
       background: linear-gradient(90deg, var(--blue-2), var(--purple));
       box-shadow: 0 10px 30px rgba(42, 68, 255, .28);
-    }
-
-    .login-btn:disabled {
-      cursor: progress;
-      opacity: .92;
-      filter: saturate(.92);
     }
 
     /* ===========================
@@ -2487,281 +2463,47 @@
     }
 
     /* ===========================
-       LOADING — FAST ACTION FEEDBACK
-       Overlay START / END hanya tampil singkat.
-       Proses server tetap berjalan aman di belakang.
+       LOADING
     =========================== */
 
     .loading {
-      display: grid;
+      display: none;
       position: fixed;
       inset: 0;
       z-index: 9999;
       place-items: center;
-      padding: 18px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 44%, rgba(51, 94, 255, .13), transparent 34%),
-        rgba(1, 6, 19, .42);
-      backdrop-filter: blur(2px);
-      transition:
-        opacity .14s ease,
-        visibility .14s ease;
+      background: rgba(1, 6, 19, .48);
+      backdrop-filter: blur(3px);
     }
 
     .loading.show {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    .loading.quick-hide {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+      display: grid;
     }
 
     .loading-box {
-      position: relative;
-      width: min(330px, calc(100vw - 36px));
-      min-height: 184px;
-      overflow: hidden;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 22px 24px 18px;
-      border: 1px solid rgba(93, 137, 255, .34);
-      border-radius: 22px;
+      gap: 12px;
+      padding: 16px 20px;
+      border: 1px solid rgba(84, 121, 255, .32);
+      border-radius: 13px;
       color: white;
-      background:
-        linear-gradient(180deg, rgba(9, 29, 67, .97), rgba(4, 16, 39, .96));
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 42px rgba(53, 78, 255, .14),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-      transform: translateY(7px) scale(.98);
-      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-      isolation: isolate;
+      background: rgba(7, 21, 53, .94);
+      box-shadow: 0 0 35px rgba(46, 61, 255, .18);
+      font-weight: 800;
     }
 
-    .loading.show .loading-box {
-      transform: translateY(0) scale(1);
-    }
-
-    .loading-box::before {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      inset: -45% -15%;
-      opacity: .48;
-      background:
-        conic-gradient(
-          from 0deg,
-          transparent 0deg 245deg,
-          rgba(69, 139, 255, .32) 285deg,
-          rgba(125, 34, 255, .34) 320deg,
-          transparent 360deg
-        );
-      animation: loadingAuraSpin 2.8s linear infinite;
-    }
-
-    .loading.mode-start .loading-box {
-      border-color: rgba(64, 145, 255, .48);
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 46px rgba(31, 120, 255, .20),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-    }
-
-    .loading.mode-end .loading-box {
-      border-color: rgba(27, 230, 154, .42);
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, .38),
-        0 0 46px rgba(0, 229, 139, .17),
-        inset 0 0 0 1px rgba(255, 255, 255, .025);
-    }
-
-    .loading-orbit {
-      position: relative;
-      width: 64px;
-      height: 64px;
-      display: grid;
-      place-items: center;
-    }
-
-    .loading-orbit::before,
-    .loading-orbit::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-    }
-
-    .loading-orbit::before {
-      inset: 0;
-      border: 2px solid rgba(125, 164, 255, .15);
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,.18);
       border-top-color: #61a3ff;
-      border-right-color: #7d22ff;
-      box-shadow:
-        0 0 20px rgba(61, 128, 255, .24),
-        inset 0 0 14px rgba(61, 128, 255, .08);
-      animation: loadingSpin .66s linear infinite;
-    }
-
-    .loading-orbit::after {
-      inset: 8px;
-      border: 1px solid rgba(255, 255, 255, .11);
-      border-bottom-color: rgba(93, 210, 255, .88);
-      animation: loadingSpinReverse .95s linear infinite;
-    }
-
-    .loading.mode-end .loading-orbit::before {
-      border-top-color: #43ffc0;
-      border-right-color: #0cbf79;
-      box-shadow:
-        0 0 20px rgba(0, 229, 139, .22),
-        inset 0 0 14px rgba(0, 229, 139, .07);
-    }
-
-    .loading-symbol {
-      position: relative;
-      z-index: 2;
-      width: 27px;
-      height: 27px;
-      color: #dceaff;
-      filter: drop-shadow(0 0 7px rgba(94, 164, 255, .42));
-    }
-
-    .loading.mode-end .loading-symbol {
-      color: #9bffd8;
-      filter: drop-shadow(0 0 7px rgba(0, 229, 139, .32));
-    }
-
-    .loading-copy {
-      min-width: 0;
-      text-align: center;
-    }
-
-    .loading-copy strong {
-      display: block;
-      color: #f6f9ff;
-      font-size: 14px;
-      font-weight: 950;
-      letter-spacing: .12em;
-      line-height: 1.25;
-    }
-
-    .loading-copy span {
-      display: block;
-      margin-top: 5px;
-      color: #8ea3cb;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-
-    .loading-progress {
-      position: relative;
-      width: 100%;
-      height: 3px;
-      margin-top: 2px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(98, 127, 190, .11);
-    }
-
-    .loading-progress > i {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 42%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, transparent, #4f99ff, #8a52ff, transparent);
-      box-shadow: 0 0 12px rgba(71, 122, 255, .58);
-      animation: loadingSweep .72s ease-in-out infinite;
-    }
-
-    .loading.mode-end .loading-progress > i {
-      background: linear-gradient(90deg, transparent, #19d995, #79ffd0, transparent);
-      box-shadow: 0 0 12px rgba(0, 229, 139, .48);
-    }
-
-    .action-btn.action-busy:disabled {
-      opacity: .96;
-      cursor: progress;
-      color: #ffffff;
-    }
-
-    .action-btn.action-queued:disabled {
-      opacity: 1;
-      cursor: wait;
-      color: #ffffff;
-      filter: saturate(1.08);
-    }
-
-    .start-btn.action-queued:disabled {
-      background: linear-gradient(90deg, #0f79ff, #5c3cff);
-      box-shadow: 0 0 28px rgba(24, 112, 255, .28);
-    }
-
-    .end-btn.action-queued:disabled {
-      background: linear-gradient(90deg, #12bd78, #07955a);
-      box-shadow: 0 0 28px rgba(0, 229, 139, .20);
-    }
-
-    .start-btn.action-busy:disabled {
-      background: linear-gradient(90deg, #0f79ff, #4c42ff);
-      box-shadow: 0 0 30px rgba(16, 102, 255, .30);
-    }
-
-    .end-btn.action-busy:disabled {
-      background: linear-gradient(90deg, #12bd78, #07955a);
-      box-shadow: 0 0 30px rgba(0, 229, 139, .22);
-    }
-
-    .btn-mini-spinner {
-      width: 15px;
-      height: 15px;
-      display: inline-block;
-      vertical-align: -2px;
-      margin-right: 8px;
-      border: 2px solid rgba(255,255,255,.28);
-      border-top-color: #ffffff;
       border-radius: 50%;
-      animation: loadingSpin .58s linear infinite;
+      animation: spin .8s linear infinite;
     }
 
-    @keyframes loadingSpin {
+    @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-
-    @keyframes loadingSpinReverse {
-      to { transform: rotate(-360deg); }
-    }
-
-    @keyframes loadingAuraSpin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes loadingSweep {
-      0%   { transform: translateX(-125%); opacity: .45; }
-      50%  { opacity: 1; }
-      100% { transform: translateX(330%); opacity: .45; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .loading,
-      .loading-box,
-      .loading-box::before,
-      .loading-orbit::before,
-      .loading-orbit::after,
-      .loading-progress > i,
-      .btn-mini-spinner {
-        animation: none !important;
-        transition: none !important;
-      }
     }
 
     /* ===========================
@@ -4310,233 +4052,6 @@
       z-index: 20;
     }
 
-
-    /* =========================================================
-       FINAL STATUS HASIL + ALERT TELAT
-       - Belum END / belum masuk kembali => SEDANG KELUAR
-       - Batas 20 menit: AMAN sampai 20:59, TELAT mulai 21:00
-       - Kolom HASIL yang telat berkedip merah
-       ========================================================= */
-
-    .badge.running {
-      color: #8fd4ff;
-      background: rgba(24, 149, 255, .13);
-      border: 1px solid rgba(73, 177, 255, .28);
-      box-shadow:
-        inset 0 0 14px rgba(31, 138, 255, .06),
-        0 0 12px rgba(31, 138, 255, .06);
-    }
-
-    /* DURASI AKTIF: stopwatch kecil hanya untuk SEDANG KELUAR */
-    td.history-duration-cell.running {
-      color: #dff4ff;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    td.history-duration-cell.running::before {
-      content: '';
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      margin-right: 6px;
-      vertical-align: -2px;
-      border-radius: 50%;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: 14px 14px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fd4ff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13' r='7.25'/%3E%3Cpath d='M12 13V9.5'/%3E%3Cpath d='M12 13l2.7 1.8'/%3E%3Cpath d='M9 2h6'/%3E%3Cpath d='M12 5V3.2'/%3E%3C/svg%3E");
-      filter:
-        drop-shadow(0 0 4px rgba(90, 191, 255, .22))
-        drop-shadow(0 0 8px rgba(76, 178, 255, .10));
-      animation: historyStopwatchPulse 1.45s ease-in-out infinite;
-    }
-
-    @keyframes historyStopwatchPulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: .90;
-      }
-
-      50% {
-        transform: scale(1.08);
-        opacity: 1;
-      }
-    }
-
-    /* TELAT: 1 BARIS FULL MERAH — MENYATU TANPA GARIS ANTAR KOLOM */
-    tr.permission-late-row td {
-      position: relative;
-      color: #fff5f7 !important;
-      animation: permissionLateRowBlink 1.55s cubic-bezier(.45, 0, .55, 1) infinite;
-      border-left: 0 !important;
-      border-right: 0 !important;
-      border-top-color: rgba(255, 91, 123, .46) !important;
-      border-bottom-color: rgba(255, 91, 123, .46) !important;
-      text-shadow: 0 0 8px rgba(255, 89, 122, .16);
-      transition: background .3s ease, box-shadow .3s ease;
-    }
-
-    /* Cuma sisi luar baris yang diberi aksen merah */
-    tr.permission-late-row td:first-child {
-      border-left: 1px solid rgba(255, 90, 122, .72) !important;
-      box-shadow: inset 3px 0 0 rgba(255, 86, 118, .66);
-    }
-
-    tr.permission-late-row td:last-child {
-      border-right: 1px solid rgba(255, 90, 122, .72) !important;
-      box-shadow: inset -3px 0 0 rgba(255, 86, 118, .66);
-    }
-
-    td.permission-result-cell {
-      position: relative;
-      isolation: isolate;
-      transition:
-        background .18s ease,
-        box-shadow .18s ease,
-        border-color .18s ease;
-    }
-
-    /* Kolom HASIL tidak lagi punya kotak/background sendiri */
-    td.permission-result-cell.late-blink-cell {
-      color: #fff !important;
-      animation: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    td.permission-result-cell.late-blink-cell .badge {
-      color: #fff !important;
-      border-color: rgba(255, 83, 112, .88) !important;
-      background: rgba(164, 15, 47, .76) !important;
-      box-shadow:
-        0 0 0 1px rgba(255, 90, 120, .28) inset,
-        0 0 18px rgba(255, 52, 91, .50),
-        0 0 34px rgba(255, 35, 78, .24) !important;
-      text-shadow:
-        0 0 8px rgba(255, 255, 255, .38),
-        0 0 12px rgba(255, 52, 91, .75);
-    }
-
-    @keyframes permissionLateRowBlink {
-      0%, 100% {
-        background: rgba(119, 8, 34, .24) !important;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 95, 126, .28),
-          inset 0 -1px 0 rgba(255, 95, 126, .28),
-          inset 0 0 26px rgba(255, 31, 75, .12),
-          0 0 0 rgba(255, 42, 83, 0);
-      }
-
-      50% {
-        background: rgba(206, 12, 52, .48) !important;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 154, 173, .82),
-          inset 0 -1px 0 rgba(255, 154, 173, .82),
-          inset 0 0 46px rgba(255, 31, 75, .30),
-          0 0 26px rgba(255, 42, 83, .18);
-      }
-    }
-
-  
-
-    /* =========================================================
-       TAMBAH AKUN - STATUS LANGSUNG DI BAWAH TOMBOL
-       ========================================================= */
-    .admin-add-login-message {
-      display: none;
-      margin-top: 10px;
-      min-height: 42px;
-      padding: 10px 12px;
-      border: 1px solid rgba(86, 120, 206, .20);
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 800;
-      line-height: 1.45;
-      letter-spacing: .01em;
-      background: rgba(5, 21, 49, .70);
-      transition: .2s ease;
-    }
-
-    .admin-add-login-message.show {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .admin-add-login-message::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      flex: 0 0 8px;
-      border-radius: 50%;
-      background: #79a6ff;
-      box-shadow: 0 0 10px rgba(71, 139, 255, .52);
-    }
-
-    .admin-add-login-message.info {
-      color: #a9d8ff;
-      border-color: rgba(62, 145, 255, .28);
-      background: rgba(12, 67, 139, .16);
-    }
-
-    .admin-add-login-message.info::before {
-      background: #5ab5ff;
-      animation: adminAddLoginDot 1s ease-in-out infinite;
-    }
-
-    .admin-add-login-message.success {
-      color: #73ffc0;
-      border-color: rgba(0, 229, 139, .28);
-      background: rgba(0, 131, 85, .15);
-    }
-
-    .admin-add-login-message.success::before {
-      background: #2df0a0;
-      box-shadow: 0 0 12px rgba(45, 240, 160, .58);
-    }
-
-    .admin-add-login-message.warning {
-      color: #ffd67b;
-      border-color: rgba(255, 177, 22, .30);
-      background: rgba(138, 91, 10, .16);
-    }
-
-    .admin-add-login-message.warning::before {
-      background: #ffc14c;
-      box-shadow: 0 0 12px rgba(255, 193, 76, .52);
-    }
-
-    .admin-add-login-message.error {
-      color: #ff9db2;
-      border-color: rgba(255, 73, 111, .34);
-      background: rgba(135, 20, 47, .18);
-    }
-
-    .admin-add-login-message.error::before {
-      background: #ff5579;
-      box-shadow: 0 0 12px rgba(255, 85, 121, .58);
-    }
-
-    #adminAddLoginButton:disabled,
-    .admin-save-btn:disabled,
-    .health-mini-btn:disabled {
-      cursor: wait;
-      opacity: .72;
-      filter: saturate(.76);
-    }
-
-    .system-health-card .admin-add-login-message {
-      margin-top: 8px;
-      padding: 7px 9px;
-      font-size: 9px;
-    }
-
-    @keyframes adminAddLoginDot {
-      0%, 100% { opacity: .42; transform: scale(.80); }
-      50% { opacity: 1; transform: scale(1.14); }
-    }
-
   </style>
 
   <!--
@@ -4578,34 +4093,27 @@
 
       async function callAppsScriptApi(
         action,
-        payload,
-        retryCount
+        payload
       ) {
-        const attempt =
-          Math.max(
-            0,
-            Number(retryCount || 0)
-          );
-
         /*
-         * Pertahankan timeout yang aman. Jangan memalsukan login
-         * sebelum server benar-benar memvalidasi akun/password.
+         * Maksimal tunggu 20 detik agar loading
+         * tidak menggantung tanpa batas.
          */
         const controller =
-          typeof AbortController === 'function'
-            ? new AbortController()
-            : null;
+          new AbortController();
+
+        const timeoutMs =
+          action ===
+            'getLiveDashboardData'
+            ? 10000
+            : 20000;
 
         const timeoutId =
           setTimeout(
             function () {
-              if (controller) {
-                try {
-                  controller.abort();
-                } catch (ignored) {}
-              }
+              controller.abort();
             },
-            20000
+            timeoutMs
           );
 
         let response;
@@ -4622,18 +4130,13 @@
                     'application/json',
 
                   'Accept':
-                    'application/json, text/plain, */*'
+                    'application/json'
                 },
 
                 cache: 'no-store',
 
-                credentials:
-                  'same-origin',
-
                 signal:
-                  controller
-                    ? controller.signal
-                    : undefined,
+                  controller.signal,
 
                 body:
                   JSON.stringify({
@@ -4646,11 +4149,10 @@
               }
             );
         } catch (error) {
-          clearTimeout(timeoutId);
-
           if (
             error &&
-            error.name === 'AbortError'
+            error.name ===
+              'AbortError'
           ) {
             throw makeError(
               'Server terlalu lama merespons. Silakan coba lagi.'
@@ -4658,88 +4160,34 @@
           }
 
           throw error;
+        } finally {
+          clearTimeout(
+            timeoutId
+          );
         }
 
-        clearTimeout(timeoutId);
-
-        /*
-         * Jangan langsung response.json(). Pada beberapa cold-start
-         * Vercel/proxy, respons sesaat bisa kosong / text / HTML.
-         * Baca sebagai text dulu agar bisa ditangani dengan aman.
-         */
-        let rawText = '';
+        let data;
 
         try {
-          rawText =
-            await response.text();
+          data =
+            await response.json();
         } catch (error) {
-          rawText = '';
-        }
-
-        let data = null;
-
-        if (rawText) {
-          try {
-            data =
-              JSON.parse(rawText);
-          } catch (error) {
-            data = null;
-          }
-        }
-
-        /*
-         * Khusus LOGIN: bila cold-start sekali mengembalikan body
-         * kosong/non-JSON, retry SATU KALI otomatis. Tidak ada bypass
-         * password dan tidak mengubah fungsi lain.
-         */
-        if (
-          action === 'login' &&
-          !data &&
-          attempt < 1
-        ) {
-          await new Promise(
-            function (resolve) {
-              setTimeout(resolve, 280);
-            }
-          );
-
-          return callAppsScriptApi(
-            action,
-            payload,
-            attempt + 1
-          );
-        }
-
-        if (!data) {
-          const contentType =
-            String(
-              response.headers &&
-              response.headers.get
-                ? response.headers.get('content-type') || ''
-                : ''
-            ).toLowerCase();
-
-          const looksHtml =
-            /text\/html/.test(contentType) ||
-            /^\s*</.test(rawText || '');
-
           throw makeError(
-            looksHtml
-              ? 'Endpoint /api/apps-script mengembalikan halaman HTML, bukan data JSON. Coba lagi atau periksa deployment API.'
-              : 'Server mengembalikan respons kosong/tidak valid. Silakan coba lagi.'
+            'Server mengembalikan respons yang tidak valid.'
           );
         }
 
         if (
           !response.ok ||
-          data.__apiError === true
+          (
+            data &&
+            data.__apiError === true
+          )
         ) {
           throw makeError(
             data && data.message
               ? data.message
-              : 'Permintaan ke server gagal (HTTP ' +
-                String(response.status || '-') +
-                ').'
+              : 'Permintaan ke server gagal.'
           );
         }
 
@@ -4900,7 +4348,7 @@
       <label class="field-label" for="loginPassword">Password</label>
       <input id="loginPassword" class="field-input" type="password" autocomplete="current-password" placeholder="Masukkan password">
 
-      <button id="loginButton" class="login-btn" type="button" onclick="handleLogin()">MASUK</button>
+      <button class="login-btn" type="button" onclick="handleLogin()">MASUK</button>
       <div id="loginMessage" class="message"></div>
     </div>
   </section>
@@ -5520,7 +4968,7 @@
           <div class="metric-divider"></div>
 
           <div class="metric-desc">
-            ◷ Data diperbarui otomatis setiap 15 detik.
+            ◷ Data diperbarui otomatis sekitar setiap 5 detik.
           </div>
         </section>
 
@@ -5690,7 +5138,6 @@
           <div id="archiveHealthValue" class="system-health-value">-</div>
           <div id="archiveHealthSub" class="system-health-sub">Arsip izin bulan lama.</div>
           <button id="archiveSetupButton" class="health-mini-btn" type="button" onclick="adminEnableArchive()">AKTIFKAN ARSIP</button>
-          <div id="adminArchiveMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
         </div>
       </div>
 
@@ -5749,7 +5196,6 @@
 
             <div class="ip-button-row">
               <button
-                id="adminUseCurrentIpButton"
                 class="admin-save-btn"
                 type="button"
                 onclick="adminUseCurrentIp()"
@@ -5758,7 +5204,6 @@
               </button>
 
               <button
-                id="adminAddIpButton"
                 class="admin-save-btn"
                 type="button"
                 onclick="adminAddIp()"
@@ -5780,7 +5225,6 @@
 
             <div class="ip-button-row">
               <button
-                id="adminDeleteIpButton"
                 class="admin-save-btn danger"
                 type="button"
                 onclick="adminDeleteIp()"
@@ -5797,8 +5241,6 @@
                 AKTIFKAN PEMBATASAN
               </button>
             </div>
-
-            <div id="adminIpMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
 
             <div class="ip-note">
               CS LINE selalu bebas IP dan tetap dapat login dari mana pun.
@@ -5821,15 +5263,12 @@
             </select>
 
             <button
-              id="adminDeletePermissionButton"
               class="admin-save-btn danger"
               type="button"
               onclick="adminDeletePermission()"
             >
               HAPUS JAM IZIN
             </button>
-
-            <div id="adminDeletePermissionMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
             <div class="delete-permission-note">
               <div class="delete-permission-note-title">
                 <svg
@@ -5894,7 +5333,7 @@
                   class="admin-control"
                   type="text"
                   autocomplete="off"
-                  placeholder="Password (minimal 1 karakter)"
+                  placeholder="Password"
                 >
               </div>
             </div>
@@ -5912,20 +5351,12 @@
             <select id="adminNewStatus" class="admin-control"></select>
 
             <button
-              id="adminAddLoginButton"
               class="admin-save-btn"
               type="button"
               onclick="adminAddLogin()"
             >
               TAMBAH DATA
             </button>
-
-            <div
-              id="adminAddLoginMessage"
-              class="admin-add-login-message"
-              role="status"
-              aria-live="polite"
-            ></div>
           </article>
 
           <article class="admin-action-card danger">
@@ -5946,15 +5377,12 @@
             </select>
 
             <button
-              id="adminDeleteLoginButton"
               class="admin-save-btn danger"
               type="button"
               onclick="adminDeleteLogin()"
             >
               HAPUS DATA
             </button>
-
-            <div id="adminDeleteLoginMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
 
             <div class="delete-login-note">
               Riwayat izin staff tidak ikut dihapus.
@@ -5978,15 +5406,12 @@
             <select id="adminRoleStatusSelect" class="admin-control"></select>
 
             <button
-              id="adminRoleSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminChangeRole()"
             >
               SIMPAN
             </button>
-
-            <div id="adminRoleMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
           <article class="admin-action-card">
@@ -5999,11 +5424,10 @@
             </div>
             <label class="admin-field-label">Staff</label>
             <select id="adminOverrideUserSelect" class="admin-control"></select>
-            <button id="adminGrantOverrideButton" class="admin-save-btn" type="button" onclick="adminGrantOverride()">IZINKAN SHIFT INI</button>
+            <button class="admin-save-btn" type="button" onclick="adminGrantOverride()">IZINKAN SHIFT INI</button>
             <label class="admin-field-label" style="margin-top:12px">Override aktif</label>
             <select id="adminOverrideActiveSelect" class="admin-control"><option value="">Belum ada override aktif</option></select>
-            <button id="adminRemoveOverrideButton" class="admin-save-btn danger" type="button" onclick="adminRemoveOverride()">HAPUS OVERRIDE</button>
-            <div id="adminOverrideMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
+            <button class="admin-save-btn danger" type="button" onclick="adminRemoveOverride()">HAPUS OVERRIDE</button>
           </article>
 
           <article class="admin-action-card">
@@ -6037,15 +5461,12 @@
             </div>
 
             <button
-              id="adminDailyLimitSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminSaveDailyLimit()"
             >
               SIMPAN
             </button>
-
-            <div id="adminDailyLimitMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
           <article class="admin-action-card">
@@ -6074,15 +5495,12 @@
             </div>
 
             <button
-              id="adminDurationSaveButton"
               class="admin-save-btn"
               type="button"
               onclick="adminSaveDuration()"
             >
               SIMPAN
             </button>
-
-            <div id="adminDurationMessage" class="admin-add-login-message" role="status" aria-live="polite"></div>
           </article>
 
         </div>
@@ -6104,25 +5522,10 @@
     </section>
 </main>
 
-  <div id="loading" class="loading" aria-live="polite" aria-busy="true">
+  <div id="loading" class="loading">
     <div class="loading-box">
-      <div class="loading-orbit" aria-hidden="true">
-        <svg class="loading-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 3v3M17 3v3"></path>
-          <rect x="4" y="5" width="16" height="16" rx="3"></rect>
-          <path d="M4 9h16"></path>
-          <path d="m8.5 14 2.2 2.2 4.8-5"></path>
-        </svg>
-      </div>
-
-      <div class="loading-copy">
-        <strong id="loadingTitle">MEMPROSES</strong>
-        <span id="loadingText">Sinkronisasi data...</span>
-      </div>
-
-      <div class="loading-progress" aria-hidden="true">
-        <i></i>
-      </div>
+      <div class="spinner"></div>
+      Memproses...
     </div>
   </div>
 
@@ -6175,7 +5578,7 @@
               id="newPasswordInput"
               type="password"
               autocomplete="new-password"
-              placeholder="Minimal 1 karakter"
+              placeholder="Minimal 6 karakter"
             >
             <button
               type="button"
@@ -6307,41 +5710,29 @@
   <script>
     const TZ = 'Asia/Jakarta';
     const SESSION_KEY = 'izinKeluarStaffSession';
-    const DASHBOARD_CACHE_KEY = 'izinKeluarStaffDashboardCacheV1';
-    const FAST_LOADING_OVERLAY_MS = 360;
-    const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
-    const SESSION_RETRY_DELAY_MS = 8000;
 
     let credentials = {
       username: '',
-      password: ''
+      password: '',
+      sessionToken: ''
     };
 
     let currentUser = null;
     let dashboardData = null;
+
+    /*
+     * Polling real-time memakai recursive timeout, bukan setInterval,
+     * supaya request tidak pernah menumpuk.
+     */
     let refreshInterval = null;
+    let liveRefreshInFlight = false;
+    let liveRefreshFailureCount = 0;
+    let lastDashboardGeneratedMs = 0;
+    let fullDashboardLoaded = false;
+
     let clockInterval = null;
     let isProcessing = false;
     let permissionActionInFlight = false;
-    let dashboardRequestInFlight = false;
-    let fastLoadingTimer = null;
-    let sessionRestoreInFlight = false;
-    let sessionRestoreRetryTimer = null;
-    let sessionRestoreRetryCount = 0;
-
-    /*
-     * START / END tetap menunggu hasil server agar aman,
-     * tetapi overlay fullscreen hanya tampil sangat singkat.
-     * Setelah itu indikator kecil tetap hidup di tombol sampai server selesai.
-     */
-    let permissionLoadingTimer = null;
-    let permissionLoadingMode = '';
-    const PERMISSION_FULLSCREEN_LOADING_MS = 260;
-    const PERMISSION_ACTION_WATCHDOG_MS = 5000;
-    let permissionActionWatchdogTimer = null;
-    let permissionActionStartedAt = 0;
-    let permissionActionToken = 0;
-
     let ipSettingsLoading = false;
     let currentIpSettings = {
       enabled: false,
@@ -6377,23 +5768,33 @@
 
       restoreLoginSession();
 
+      /*
+       * Saat tab kembali aktif, sinkronkan langsung.
+       * Saat tersembunyi, polling otomatis melambat/berhenti.
+       */
       document.addEventListener(
         'visibilitychange',
         function () {
-          if (!document.hidden) {
-            recoverPermissionActionUi();
+          if (
+            !document.hidden &&
+            currentUser
+          ) {
+            scheduleNextLiveRefresh(
+              150
+            );
           }
         }
       );
 
       window.addEventListener(
         'focus',
-        recoverPermissionActionUi
-      );
-
-      window.addEventListener(
-        'online',
-        recoverPermissionActionUi
+        function () {
+          if (currentUser) {
+            scheduleNextLiveRefresh(
+              150
+            );
+          }
+        }
       );
 
       document.addEventListener(
@@ -6408,460 +5809,103 @@
       );
     });
 
-    function readStorageValue(storageName, key) {
+    function saveLoginSession(
+      username,
+      password,
+      sessionToken
+    ) {
       try {
-        return window[storageName].getItem(key);
-      } catch (error) {
-        return null;
-      }
-    }
-
-
-    function writeStorageValue(storageName, key, value) {
-      try {
-        window[storageName].setItem(key, value);
-        return true;
-      } catch (error) {
-        return false;
-      }
-    }
-
-
-    function removeStorageValue(storageName, key) {
-      try {
-        window[storageName].removeItem(key);
-      } catch (ignored) {}
-    }
-
-
-    function saveLoginSession(username, password) {
-      const now =
-        Date.now();
-
-      const serialized =
-        JSON.stringify({
-          username:
-            username,
-
-          password:
-            password,
-
-          savedAt:
-            now,
-
-          expiresAt:
-            now + SESSION_DURATION_MS
-        });
-
-      const savedInSession =
-        writeStorageValue(
-          'sessionStorage',
+        sessionStorage.setItem(
           SESSION_KEY,
-          serialized
-        );
+          JSON.stringify({
+            username:
+              username,
 
-      const savedPersistently =
-        writeStorageValue(
-          'localStorage',
-          SESSION_KEY,
-          serialized
-        );
+            password:
+              password,
 
-      if (!savedInSession && !savedPersistently) {
+            sessionToken:
+              sessionToken || ''
+          })
+        );
+      } catch (error) {
         console.warn(
-          'Session login tidak dapat disimpan di browser.'
+          'Session login tidak dapat disimpan:',
+          error
         );
       }
-    }
-
-
-    function getSavedLoginSession() {
-      const rawCandidates = [
-        readStorageValue(
-          'sessionStorage',
-          SESSION_KEY
-        ),
-
-        readStorageValue(
-          'localStorage',
-          SESSION_KEY
-        )
-      ];
-
-      let selected = null;
-
-      rawCandidates.forEach(function (raw) {
-        if (!raw) {
-          return;
-        }
-
-        try {
-          const candidate =
-            JSON.parse(raw);
-
-          if (
-            !candidate ||
-            !candidate.username ||
-            !candidate.password
-          ) {
-            return;
-          }
-
-          if (
-            candidate.expiresAt &&
-            Number(candidate.expiresAt) <= Date.now()
-          ) {
-            return;
-          }
-
-          if (
-            !selected ||
-            Number(candidate.savedAt || 0) >=
-              Number(selected.savedAt || 0)
-          ) {
-            selected = candidate;
-          }
-        } catch (ignored) {}
-      });
-
-      if (!selected) {
-        clearLoginSession();
-        return null;
-      }
-
-      /* Migrasikan session versi lama ke session 30 hari. */
-      if (!selected.expiresAt) {
-        saveLoginSession(
-          selected.username,
-          selected.password
-        );
-
-        selected =
-          JSON.parse(
-            readStorageValue(
-              'sessionStorage',
-              SESSION_KEY
-            ) ||
-            readStorageValue(
-              'localStorage',
-              SESSION_KEY
-            )
-          );
-      }
-
-      return selected;
-    }
-
-
-    function saveDashboardCache() {
-      if (
-        !currentUser ||
-        !dashboardData ||
-        !credentials.username
-      ) {
-        return;
-      }
-
-      const serialized =
-        JSON.stringify({
-          username:
-            String(credentials.username)
-              .trim()
-              .toLowerCase(),
-
-          savedAt:
-            Date.now(),
-
-          user:
-            currentUser,
-
-          dashboard:
-            dashboardData
-        });
-
-      const savedInSession =
-        writeStorageValue(
-          'sessionStorage',
-          DASHBOARD_CACHE_KEY,
-          serialized
-        );
-
-      const savedPersistently =
-        writeStorageValue(
-          'localStorage',
-          DASHBOARD_CACHE_KEY,
-          serialized
-        );
-
-      if (!savedInSession && !savedPersistently) {
-        console.warn(
-          'Cache dashboard tidak dapat disimpan di browser.'
-        );
-      }
-    }
-
-
-    function loadDashboardCache(username) {
-      const expectedUsername =
-        String(username || '')
-          .trim()
-          .toLowerCase();
-
-      const rawCandidates = [
-        readStorageValue(
-          'sessionStorage',
-          DASHBOARD_CACHE_KEY
-        ),
-
-        readStorageValue(
-          'localStorage',
-          DASHBOARD_CACHE_KEY
-        )
-      ];
-
-      let selected = null;
-
-      rawCandidates.forEach(function (raw) {
-        if (!raw) {
-          return;
-        }
-
-        try {
-          const cached =
-            JSON.parse(raw);
-
-          if (
-            !cached ||
-            !cached.user ||
-            !cached.dashboard ||
-            String(cached.username || '') !== expectedUsername
-          ) {
-            return;
-          }
-
-          if (
-            !selected ||
-            Number(cached.savedAt || 0) >=
-              Number(selected.savedAt || 0)
-          ) {
-            selected = cached;
-          }
-        } catch (ignored) {}
-      });
-
-      return selected;
-    }
-
-
-    function clearDashboardCache() {
-      removeStorageValue(
-        'sessionStorage',
-        DASHBOARD_CACHE_KEY
-      );
-
-      removeStorageValue(
-        'localStorage',
-        DASHBOARD_CACHE_KEY
-      );
     }
 
 
     function clearLoginSession() {
-      if (sessionRestoreRetryTimer) {
-        clearTimeout(
-          sessionRestoreRetryTimer
+      try {
+        sessionStorage.removeItem(
+          SESSION_KEY
         );
-
-        sessionRestoreRetryTimer = null;
+      } catch (error) {
+        console.warn(
+          'Session login tidak dapat dihapus:',
+          error
+        );
       }
-
-      sessionRestoreInFlight = false;
-      sessionRestoreRetryCount = 0;
-
-      permissionActionToken += 1;
-      permissionActionInFlight = false;
-      clearPermissionActionWatchdog();
-
-      removeStorageValue(
-        'sessionStorage',
-        SESSION_KEY
-      );
-
-      removeStorageValue(
-        'localStorage',
-        SESSION_KEY
-      );
-
-      clearDashboardCache();
     }
 
 
-    function isAuthenticationSessionError(error) {
-      const message =
-        String(
-          error && error.message
-            ? error.message
-            : error || ''
-        )
-          .toLowerCase();
+    function restoreLoginSession() {
+      let savedSession = null;
 
-      return [
-        'username atau password salah',
-        'username/password salah',
-        'password salah',
-        'akun tidak ditemukan',
-        'akun tidak aktif',
-        'login tidak diizinkan',
-        'akses login tidak diizinkan',
-        'sesi login berakhir'
-      ].some(function (keyword) {
-        return message.includes(keyword);
-      });
-    }
-
-
-    function scheduleSessionRestoreRetry() {
-      if (sessionRestoreRetryTimer) {
-        clearTimeout(
-          sessionRestoreRetryTimer
-        );
-      }
-
-      sessionRestoreRetryCount += 1;
-
-      const retryDelay =
-        Math.min(
-          60000,
-          SESSION_RETRY_DELAY_MS *
-            Math.pow(
-              2,
-              Math.min(
-                sessionRestoreRetryCount - 1,
-                3
-              )
-            )
-        );
-
-      sessionRestoreRetryTimer =
-        setTimeout(function () {
-          sessionRestoreRetryTimer = null;
-
-          if (getSavedLoginSession()) {
-            restoreLoginSession(true);
-          }
-        }, retryDelay);
-    }
-
-
-    function restoreLoginSession(silentRetry) {
-      if (sessionRestoreInFlight) {
-        return;
-      }
-
-      const savedSession =
-        getSavedLoginSession();
-
-      if (!savedSession) {
-        document.documentElement.classList.remove(
-          'restoring-session'
-        );
-        return;
-      }
-
-      sessionRestoreInFlight = true;
-
-      credentials = {
-        username:
-          savedSession.username,
-
-        password:
-          savedSession.password
-      };
-
-      const cached =
-        loadDashboardCache(
-          savedSession.username
-        );
-
-      /*
-       * Saat refresh, snapshot dashboard terakhir langsung ditampilkan.
-       * Validasi session dan data terbaru tetap berjalan di belakang.
-       */
-      if (cached && !currentUser) {
-        try {
-          currentUser =
-            cached.user;
-
-          showApplication();
-
-          renderDashboard(
-            cached.dashboard
+      try {
+        const raw =
+          sessionStorage.getItem(
+            SESSION_KEY
           );
 
-          startAutoRefresh();
-        } catch (error) {
-          console.warn(
-            'Cache dashboard gagal dirender:',
-            error
-          );
+        if (raw) {
+          savedSession =
+            JSON.parse(raw);
         }
+      } catch (error) {
+        clearLoginSession();
+        return;
       }
 
-      document.documentElement.classList.remove(
-        'restoring-session'
-      );
-
-      if (!silentRetry) {
-        setLoading(true);
-        scheduleFastLoadingHide(
-          cached
-            ? 180
-            : FAST_LOADING_OVERLAY_MS
-        );
+      if (
+        !savedSession ||
+        !savedSession.username ||
+        !savedSession.password
+      ) {
+        return;
       }
+
+      setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
-          const activeSession =
-            getSavedLoginSession();
-
-          if (
-            !activeSession ||
-            activeSession.username !== savedSession.username ||
-            activeSession.password !== savedSession.password
-          ) {
-            sessionRestoreInFlight = false;
-
-            if (!silentRetry) {
-              setLoading(false);
-            }
-
-            return;
-          }
-
-          sessionRestoreInFlight = false;
-          sessionRestoreRetryCount = 0;
-
-          if (sessionRestoreRetryTimer) {
-            clearTimeout(
-              sessionRestoreRetryTimer
-            );
-
-            sessionRestoreRetryTimer = null;
-          }
-
           try {
+            credentials = {
+              username:
+                savedSession.username,
+
+              password:
+                savedSession.password,
+
+              sessionToken:
+                result.sessionToken ||
+                savedSession.sessionToken ||
+                ''
+            };
+
             currentUser =
               result.user;
 
-            /*
-             * Setiap validasi sukses memperpanjang masa aktif session
-             * menjadi 30 hari lagi.
-             */
             saveLoginSession(
-              savedSession.username,
-              savedSession.password
+              credentials.username,
+              credentials.password,
+              credentials.sessionToken
             );
+
+            fullDashboardLoaded =
+              false;
 
             showApplication();
 
@@ -6870,8 +5914,6 @@
             );
 
             startAutoRefresh();
-            clearMessage('appMessage');
-            clearMessage('loginMessage');
           } catch (error) {
             console.error(
               'Gagal merender dashboard:',
@@ -6884,87 +5926,57 @@
               'warning'
             );
           } finally {
-            if (!silentRetry) {
-              setLoading(false);
-            }
+            document.documentElement.classList.remove(
+              'restoring-session'
+            );
+
+            setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
-          const activeSession =
-            getSavedLoginSession();
-
-          if (
-            !activeSession ||
-            activeSession.username !== savedSession.username ||
-            activeSession.password !== savedSession.password
-          ) {
-            sessionRestoreInFlight = false;
-
-            if (!silentRetry) {
-              setLoading(false);
-            }
-
-            return;
-          }
-
-          sessionRestoreInFlight = false;
-          dashboardRequestInFlight = false;
-
-          if (!silentRetry) {
-            setLoading(false);
-          }
-
           /*
-           * Logout hanya jika server benar-benar menolak akun/password.
-           * Timeout, internet putus, atau server lambat tidak menghapus session.
+           * Jika password di sheet berubah atau akun tidak lagi valid,
+           * hapus session lalu tampilkan halaman login.
            */
-          if (isAuthenticationSessionError(error)) {
-            clearLoginSession();
+          clearLoginSession();
 
-            credentials = {
-              username: '',
-              password: ''
-            };
+          credentials = {
+            username: '',
+            password: '',
+            sessionToken: ''
+          };
 
-            currentUser = null;
-            dashboardData = null;
+          currentUser = null;
+          dashboardData = null;
 
-            document
-              .getElementById('appView')
-              .classList
-              .add('hidden');
+          document
+            .getElementById('appView')
+            .classList
+            .add('hidden');
 
-            document
-              .getElementById('loginView')
-              .classList
-              .remove('hidden');
+          document
+            .getElementById('loginView')
+            .classList
+            .remove('hidden');
 
+          document.documentElement.classList.remove(
+            'restoring-session'
+          );
+
+          setLoading(false);
+
+          const message =
+            error && error.message
+              ? error.message
+              : '';
+
+          if (message) {
             showMessage(
               'loginMessage',
               'Sesi login berakhir. Silakan masuk kembali.',
               'warning'
             );
-
-            return;
           }
-
-          if (currentUser && dashboardData) {
-            showApplication();
-
-            showMessage(
-              'appMessage',
-              'Koneksi server sedang terganggu. Session tetap aktif dan akan tersambung kembali otomatis.',
-              'warning'
-            );
-          } else {
-            showMessage(
-              'loginMessage',
-              'Koneksi server sedang terganggu. Session tersimpan dan sedang dicoba kembali otomatis.',
-              'warning'
-            );
-          }
-
-          scheduleSessionRestoreRetry();
         })
         .login({
           username:
@@ -7166,9 +6178,9 @@
         return;
       }
 
-      if (passwordBaru.length < 1) {
+      if (passwordBaru.length < 6) {
         setPasswordMessage(
-          'Password baru minimal 1 karakter.',
+          'Password baru minimal 6 karakter.',
           'error'
         );
         return;
@@ -7303,15 +6315,9 @@
       const data = details || {};
 
       if (type === 'start') {
-        title.textContent =
-          data.pending
-            ? 'START Diterima'
-            : 'Izin Dimulai';
-
+        title.textContent = 'Izin Dimulai';
         subtitle.textContent =
-          data.pending
-            ? 'Jam keluar langsung ditampilkan. Penyimpanan server berjalan di belakang.'
-            : 'Jam keluar berhasil dicatat. Durasi keluar mulai berjalan.';
+          'Jam keluar berhasil dicatat. Durasi keluar mulai berjalan.';
 
         detailBox.innerHTML = `
           <div class="action-popup-row">
@@ -7331,28 +6337,15 @@
         popup.classList.add('end');
 
         const result =
-          normalizeCompletedPermissionResult(
-            data.hasil,
-            data.durasi,
-            dashboardData &&
-            dashboardData.current
-              ? dashboardData.current.batasMenit
-              : 20
-          );
+          String(data.hasil || 'AMAN').toUpperCase();
 
         if (result === 'TELAT') {
           popup.classList.add('late');
         }
 
-        title.textContent =
-          data.pending
-            ? 'END Diterima'
-            : 'Izin Selesai';
-
+        title.textContent = 'Izin Selesai';
         subtitle.textContent =
-          data.pending
-            ? 'Jam kembali langsung ditampilkan. Penyimpanan server berjalan di belakang.'
-            : 'Jam kembali berhasil dicatat dan izin telah ditutup.';
+          'Jam kembali berhasil dicatat dan izin telah ditutup.';
 
         detailBox.innerHTML = `
           <div class="action-popup-row">
@@ -7432,10 +6425,6 @@
 
 
     function handleLogin() {
-      if (isProcessing) {
-        return;
-      }
-
       const username = document
         .getElementById('loginUsername')
         .value
@@ -7455,42 +6444,46 @@
         return;
       }
 
-      clearMessage('loginMessage');
-      setLoginButtonBusy(true);
       setLoading(true);
-      scheduleFastLoadingHide(
-        FAST_LOADING_OVERLAY_MS
-      );
 
       google.script.run
         .withSuccessHandler(function (result) {
           try {
-            sessionRestoreRetryCount = 0;
-
-            if (sessionRestoreRetryTimer) {
-              clearTimeout(
-                sessionRestoreRetryTimer
-              );
-
-              sessionRestoreRetryTimer = null;
-            }
-
             credentials = {
-              username: username,
-              password: password
+              username:
+                username,
+
+              password:
+                password,
+
+              sessionToken:
+                result.sessionToken ||
+                ''
             };
 
-            currentUser = result.user;
+            currentUser =
+              result.user;
+
+            fullDashboardLoaded =
+              false;
 
             saveLoginSession(
               username,
-              password
+              password,
+              credentials.sessionToken
             );
 
             document.getElementById('loginPassword').value = '';
 
+            /*
+             * Dashboard ringan langsung tampil.
+             * Tidak menunggu data admin/arsip/yesterday.
+             */
             showApplication();
-            renderDashboard(result.dashboard);
+            renderDashboard(
+              result.dashboard
+            );
+
             startAutoRefresh();
           } catch (error) {
             console.error(
@@ -7504,12 +6497,10 @@
               'warning'
             );
           } finally {
-            setLoginButtonBusy(false);
             setLoading(false);
           }
         })
         .withFailureHandler(function (error) {
-          setLoginButtonBusy(false);
           handleServerError(error, 'loginMessage');
         })
         .login({
@@ -7541,19 +6532,33 @@
 
       credentials = {
         username: '',
-        password: ''
+        password: '',
+        sessionToken: ''
       };
 
       currentUser = null;
       dashboardData = null;
-      dashboardRequestInFlight = false;
-      setLoginButtonBusy(false);
-      setLoading(false);
 
       if (refreshInterval) {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
+        clearTimeout(
+          refreshInterval
+        );
+
+        refreshInterval =
+          null;
       }
+
+      liveRefreshInFlight =
+        false;
+
+      liveRefreshFailureCount =
+        0;
+
+      fullDashboardLoaded =
+        false;
+
+      lastDashboardGeneratedMs =
+        0;
 
       document
         .getElementById('appView')
@@ -7675,6 +6680,33 @@
           navButton.dataset.view === activeNavView
         );
       });
+
+      /*
+       * Data berat dimuat hanya saat benar-benar dibutuhkan.
+       * Halaman login/home tidak perlu menunggu bagian ini.
+       */
+      if (
+        (
+          viewName ===
+            'settings' ||
+          viewName ===
+            'yesterdayHistory'
+        ) &&
+        !fullDashboardLoaded
+      ) {
+        refreshDashboard(
+          true
+        );
+      } else if (
+        viewName ===
+          'myPermission' ||
+        viewName ===
+          'history'
+      ) {
+        scheduleNextLiveRefresh(
+          250
+        );
+      }
     }
 
 
@@ -7698,315 +6730,6 @@
     }
 
 
-    function getWibClockText(timestamp) {
-      try {
-        return new Intl.DateTimeFormat(
-          'id-ID',
-          {
-            timeZone: TZ,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-          }
-        )
-          .format(
-            new Date(timestamp)
-          )
-          .replace(/\./g, ':');
-      } catch (error) {
-        return '-';
-      }
-    }
-
-
-    function renderOptimisticPermissionState() {
-      renderQuickStatus();
-      renderMyPermission();
-      renderMetricCards();
-      updateCountdowns();
-    }
-
-
-    function applyOptimisticPermission(mode) {
-      if (!dashboardData) {
-        return null;
-      }
-
-      const snapshot =
-        dashboardData;
-
-      const current =
-        snapshot.current || {};
-
-      const now =
-        Date.now();
-
-      let details = {};
-      let nextCurrent;
-
-      if (mode === 'end') {
-        const ownActive =
-          current.ownActive;
-
-        if (!ownActive) {
-          return null;
-        }
-
-        const startMs =
-          getPermissionStartMs(
-            ownActive,
-            current.batasMenit
-          );
-
-        details = {
-          pending: true,
-          jamKembali:
-            getWibClockText(now),
-          durasi:
-            formatElapsedDuration(
-              Math.max(0, now - startMs)
-            ),
-          hasil:
-            isPermissionLateAt(
-              ownActive,
-              current.batasMenit,
-              now
-            )
-              ? 'TELAT'
-              : 'AMAN'
-        };
-
-        nextCurrent =
-          Object.assign(
-            {},
-            current,
-            {
-              ownActive: null,
-              activeSameRole:
-                Math.max(
-                  0,
-                  Number(current.activeSameRole || 0) - 1
-                )
-            }
-          );
-      } else {
-        const limitMinutes =
-          Math.max(
-            0,
-            Number(current.batasMenit || 0)
-          );
-
-        const deadlineMs =
-          now + limitMinutes * 60 * 1000;
-
-        const jamKeluar =
-          getWibClockText(now);
-
-        const batasKembali =
-          getWibClockText(deadlineMs);
-
-        const ownActive = {
-          username:
-            currentUser && currentUser.username
-              ? currentUser.username
-              : credentials.username,
-          nama:
-            currentUser && currentUser.nama
-              ? currentUser.nama
-              : '',
-          status:
-            currentUser && currentUser.status
-              ? currentUser.status
-              : '',
-          jamKeluar:
-            jamKeluar,
-          batasKembali:
-            batasKembali,
-          startMs:
-            now,
-          deadlineMs:
-            deadlineMs,
-          optimistic:
-            true
-        };
-
-        details = {
-          pending: true,
-          jamKeluar:
-            jamKeluar,
-          batasKembali:
-            batasKembali
-        };
-
-        nextCurrent =
-          Object.assign(
-            {},
-            current,
-            {
-              ownActive:
-                ownActive,
-              activeSameRole:
-                Number(current.activeSameRole || 0) + 1,
-              ownShiftCount:
-                Number(current.ownShiftCount || 0) + 1,
-              lastPermission:
-                Object.assign(
-                  {},
-                  current.lastPermission || {},
-                  {
-                    jamKeluar:
-                      jamKeluar
-                  }
-                )
-            }
-          );
-      }
-
-      dashboardData =
-        Object.assign(
-          {},
-          snapshot,
-          {
-            current:
-              nextCurrent
-          }
-        );
-
-      renderOptimisticPermissionState();
-      showActionPopup(mode, details);
-
-      showMessage(
-        'appMessage',
-        mode === 'end'
-          ? 'END terkirim. Sinkronisasi berjalan di belakang.'
-          : 'START terkirim. Sinkronisasi berjalan di belakang.',
-        'success'
-      );
-
-      return {
-        snapshot:
-          snapshot,
-        mode:
-          mode
-      };
-    }
-
-
-    function rollbackOptimisticPermission(state) {
-      if (!state || !state.snapshot) {
-        return;
-      }
-
-      dashboardData =
-        state.snapshot;
-
-      closeActionPopup();
-      renderOptimisticPermissionState();
-    }
-
-
-    function isCurrentPermissionAction(actionToken) {
-      return (
-        Number(actionToken) ===
-        Number(permissionActionToken)
-      );
-    }
-
-
-    function clearPermissionActionWatchdog(actionToken) {
-      if (
-        actionToken !== undefined &&
-        !isCurrentPermissionAction(actionToken)
-      ) {
-        return;
-      }
-
-      if (permissionActionWatchdogTimer) {
-        clearTimeout(
-          permissionActionWatchdogTimer
-        );
-
-        permissionActionWatchdogTimer = null;
-      }
-
-      permissionActionStartedAt = 0;
-    }
-
-
-    function releasePermissionActionUi(actionToken, mode) {
-      if (
-        !isCurrentPermissionAction(actionToken) ||
-        !permissionActionInFlight
-      ) {
-        return;
-      }
-
-      if (permissionActionWatchdogTimer) {
-        clearTimeout(
-          permissionActionWatchdogTimer
-        );
-
-        permissionActionWatchdogTimer = null;
-      }
-
-      permissionActionStartedAt = 0;
-      permissionActionInFlight = false;
-
-      finishPermissionActionLoading(
-        mode,
-        actionToken
-      );
-
-      showMessage(
-        'appMessage',
-        mode === 'end'
-          ? 'END sudah dikirim. Server masih menyinkronkan di belakang; tombol telah dipulihkan otomatis.'
-          : 'START sudah dikirim. Server masih menyinkronkan di belakang; tombol telah dipulihkan otomatis.',
-        'warning'
-      );
-    }
-
-
-    function startPermissionActionWatchdog(
-      actionToken,
-      mode
-    ) {
-      clearPermissionActionWatchdog();
-
-      permissionActionStartedAt =
-        Date.now();
-
-      permissionActionWatchdogTimer =
-        setTimeout(function () {
-          releasePermissionActionUi(
-            actionToken,
-            mode
-          );
-        }, PERMISSION_ACTION_WATCHDOG_MS);
-    }
-
-
-    function recoverPermissionActionUi() {
-      if (
-        !permissionActionInFlight ||
-        !permissionActionStartedAt
-      ) {
-        return;
-      }
-
-      if (
-        Date.now() - permissionActionStartedAt >=
-        PERMISSION_ACTION_WATCHDOG_MS
-      ) {
-        releasePermissionActionUi(
-          permissionActionToken,
-          permissionLoadingMode || 'start'
-        );
-      }
-    }
-
-
     function startPermission() {
       const current = dashboardData && dashboardData.current ? dashboardData.current : {};
 
@@ -8022,84 +6745,64 @@
       }
 
       permissionActionInFlight = true;
-      const actionToken =
-        permissionActionToken + 1;
 
-      permissionActionToken =
-        actionToken;
+      if (refreshInterval) {
+        clearTimeout(
+          refreshInterval
+        );
 
-      const requestId = createRequestId('START');
-      const optimisticState =
-        applyOptimisticPermission('start');
+        refreshInterval =
+          null;
+      }
 
-      beginPermissionActionLoading(
-        'start',
-        actionToken
-      );
+      const requestId =
+        createRequestId(
+          'START'
+        );
 
-      startPermissionActionWatchdog(
-        actionToken,
-        'start'
-      );
+      setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
-          if (!isCurrentPermissionAction(actionToken)) {
-            return;
-          }
-
           try {
             showMessage('appMessage', result.message, result.type || (result.ok === false ? 'warning' : 'success'));
+            renderDashboard(result.dashboard);
 
-            if (result.dashboard) {
-              renderDashboard(result.dashboard);
-            } else if (result.ok === false) {
-              rollbackOptimisticPermission(
-                optimisticState
-              );
-            }
-
-            if (result.ok === false) {
-              closeActionPopup();
+            if (result.ok !== false) {
+              const ownActive = result.dashboard && result.dashboard.current ? result.dashboard.current.ownActive : null;
+              showActionPopup('start', {
+                jamKeluar: ownActive ? ownActive.jamKeluar : '-',
+                batasKembali: ownActive ? ownActive.batasKembali : '-'
+              });
             }
           } catch (error) {
             console.error('Gagal memperbarui dashboard:', error);
             showMessage('appMessage', 'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.', 'warning');
           } finally {
-            clearPermissionActionWatchdog(
-              actionToken
+            permissionActionInFlight =
+              false;
+
+            setLoading(
+              false
             );
 
-            permissionActionInFlight = false;
-            finishPermissionActionLoading(
-              'start',
-              actionToken
+            scheduleNextLiveRefresh(
+              800
             );
           }
         })
         .withFailureHandler(function (error) {
-          if (!isCurrentPermissionAction(actionToken)) {
-            return;
-          }
+          permissionActionInFlight =
+            false;
 
-          rollbackOptimisticPermission(
-            optimisticState
+          handleServerError(
+            error,
+            'appMessage'
           );
 
-          clearPermissionActionWatchdog(
-            actionToken
+          scheduleNextLiveRefresh(
+            2000
           );
-
-          permissionActionInFlight = false;
-          finishPermissionActionLoading(
-            'start',
-            actionToken
-          );
-          handleServerError(error, 'appMessage');
-
-          setTimeout(function () {
-            refreshDashboard(false);
-          }, 1200);
         })
         .mulaiIzin({
           username: credentials.username,
@@ -8114,32 +6817,25 @@
       }
 
       permissionActionInFlight = true;
-      const actionToken =
-        permissionActionToken + 1;
 
-      permissionActionToken =
-        actionToken;
+      if (refreshInterval) {
+        clearTimeout(
+          refreshInterval
+        );
 
-      const requestId = createRequestId('END');
-      const optimisticState =
-        applyOptimisticPermission('end');
+        refreshInterval =
+          null;
+      }
 
-      beginPermissionActionLoading(
-        'end',
-        actionToken
-      );
+      const requestId =
+        createRequestId(
+          'END'
+        );
 
-      startPermissionActionWatchdog(
-        actionToken,
-        'end'
-      );
+      setLoading(true);
 
       google.script.run
         .withSuccessHandler(function (result) {
-          if (!isCurrentPermissionAction(actionToken)) {
-            return;
-          }
-
           try {
             showMessage(
               'appMessage',
@@ -8147,16 +6843,33 @@
               result.type || (result.ok === false ? 'warning' : 'success')
             );
 
-            if (result.dashboard) {
-              renderDashboard(result.dashboard);
-            } else if (result.ok === false) {
-              rollbackOptimisticPermission(
-                optimisticState
-              );
-            }
+            renderDashboard(result.dashboard);
 
-            if (result.ok === false) {
-              closeActionPopup();
+            if (result.ok !== false) {
+              const latestRecord =
+                getLatestOwnTodayRecord(
+                  result.dashboard
+                );
+
+              showActionPopup(
+                'end',
+                {
+                  jamKembali:
+                    latestRecord
+                      ? latestRecord.jamKembali
+                      : '-',
+
+                  durasi:
+                    latestRecord
+                      ? latestRecord.durasi
+                      : '-',
+
+                  hasil:
+                    latestRecord
+                      ? latestRecord.hasil
+                      : 'AMAN'
+                }
+              );
             }
           } catch (error) {
             console.error(
@@ -8170,40 +6883,30 @@
               'warning'
             );
           } finally {
-            clearPermissionActionWatchdog(
-              actionToken
+            permissionActionInFlight =
+              false;
+
+            setLoading(
+              false
             );
 
-            permissionActionInFlight = false;
-            finishPermissionActionLoading(
-              'end',
-              actionToken
+            scheduleNextLiveRefresh(
+              800
             );
           }
         })
         .withFailureHandler(function (error) {
-          if (!isCurrentPermissionAction(actionToken)) {
-            return;
-          }
+          permissionActionInFlight =
+            false;
 
-          rollbackOptimisticPermission(
-            optimisticState
+          handleServerError(
+            error,
+            'appMessage'
           );
 
-          clearPermissionActionWatchdog(
-            actionToken
+          scheduleNextLiveRefresh(
+            2000
           );
-
-          permissionActionInFlight = false;
-          finishPermissionActionLoading(
-            'end',
-            actionToken
-          );
-          handleServerError(error, 'appMessage');
-
-          setTimeout(function () {
-            refreshDashboard(false);
-          }, 1200);
         })
         .sudahKembali({
           username: credentials.username,
@@ -8212,83 +6915,386 @@
         });
     }
 
-    function refreshDashboard(showLoading) {
+    function isRealtimeViewActive() {
+      const home =
+        document.getElementById(
+          'view-myPermission'
+        );
+
+      const history =
+        document.getElementById(
+          'view-history'
+        );
+
+      return Boolean(
+        (
+          home &&
+          !home.classList.contains(
+            'hidden'
+          )
+        ) ||
+        (
+          history &&
+          !history.classList.contains(
+            'hidden'
+          )
+        )
+      );
+    }
+
+
+    function getLiveRefreshDelay() {
+      /*
+       * Normal 5 detik.
+       * Gagal berulang -> backoff 8s / 15s / 30s.
+       */
+      if (
+        liveRefreshFailureCount <= 0
+      ) {
+        return (
+          4500 +
+          Math.floor(
+            Math.random() *
+            1000
+          )
+        );
+      }
+
+      if (
+        liveRefreshFailureCount === 1
+      ) {
+        return 8000;
+      }
+
+      if (
+        liveRefreshFailureCount === 2
+      ) {
+        return 15000;
+      }
+
+      return 30000;
+    }
+
+
+    function scheduleNextLiveRefresh(
+      delay
+    ) {
+      if (refreshInterval) {
+        clearTimeout(
+          refreshInterval
+        );
+      }
+
+      if (!currentUser) {
+        refreshInterval =
+          null;
+
+        return;
+      }
+
+      refreshInterval =
+        setTimeout(
+          function () {
+            refreshLiveDashboard();
+          },
+          typeof delay ===
+            'number'
+            ? delay
+            : getLiveRefreshDelay()
+        );
+    }
+
+
+    function mergeLiveDashboard(
+      incoming
+    ) {
+      const next =
+        incoming || {};
+
+      if (!dashboardData) {
+        return next;
+      }
+
+      /*
+       * Live endpoint sengaja tidak membawa data berat.
+       * Pertahankan data full lama bila sudah pernah dimuat.
+       */
+      if (
+        !next.admin &&
+        dashboardData.admin
+      ) {
+        next.admin =
+          dashboardData.admin;
+      }
+
+      if (
+        (
+          !next.settings ||
+          !next.settings.length
+        ) &&
+        dashboardData.settings &&
+        dashboardData.settings.length
+      ) {
+        next.settings =
+          dashboardData.settings;
+      }
+
+      if (
+        fullDashboardLoaded
+      ) {
+        next.yesterday =
+          dashboardData.yesterday ||
+          [];
+
+        next.yesterdayStats =
+          dashboardData.yesterdayStats ||
+          {};
+      }
+
+      return next;
+    }
+
+
+    function refreshLiveDashboard(
+      force
+    ) {
       if (
         !currentUser ||
-        isProcessing ||
-        dashboardRequestInFlight
+        liveRefreshInFlight ||
+        permissionActionInFlight ||
+        isProcessing
+      ) {
+        scheduleNextLiveRefresh(
+          1200
+        );
+
+        return;
+      }
+
+      if (
+        !force &&
+        (
+          document.hidden ||
+          !isRealtimeViewActive()
+        )
+      ) {
+        scheduleNextLiveRefresh(
+          5000
+        );
+
+        return;
+      }
+
+      liveRefreshInFlight =
+        true;
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            liveRefreshInFlight =
+              false;
+
+            try {
+              if (
+                result &&
+                result.sessionToken &&
+                result.sessionToken !==
+                  credentials.sessionToken
+              ) {
+                credentials.sessionToken =
+                  result.sessionToken;
+
+                saveLoginSession(
+                  credentials.username,
+                  credentials.password,
+                  credentials.sessionToken
+                );
+              }
+
+              const incoming =
+                result &&
+                result.dashboard
+                  ? result.dashboard
+                  : result;
+
+              if (
+                incoming &&
+                Number(
+                  incoming.generatedMs || 0
+                ) >=
+                lastDashboardGeneratedMs
+              ) {
+                liveRefreshFailureCount =
+                  0;
+
+                renderDashboard(
+                  mergeLiveDashboard(
+                    incoming
+                  )
+                );
+              }
+            } catch (error) {
+              console.error(
+                'Gagal menerapkan data real-time:',
+                error
+              );
+            }
+
+            scheduleNextLiveRefresh();
+          }
+        )
+        .withFailureHandler(
+          function (error) {
+            liveRefreshInFlight =
+              false;
+
+            liveRefreshFailureCount =
+              Math.min(
+                4,
+                liveRefreshFailureCount +
+                1
+              );
+
+            console.warn(
+              'Real-time refresh gagal:',
+              error
+            );
+
+            scheduleNextLiveRefresh();
+          }
+        )
+        .getLiveDashboardData({
+          username:
+            credentials.username,
+
+          password:
+            credentials.password,
+
+          sessionToken:
+            credentials.sessionToken
+        });
+    }
+
+
+    function refreshDashboard(
+      showLoading
+    ) {
+      if (
+        !currentUser ||
+        isProcessing
       ) {
         return;
       }
 
-      dashboardRequestInFlight = true;
-
-      const permissionTokenAtRequest =
-        permissionActionToken;
-
       if (showLoading) {
-        setLoading(true);
-        scheduleFastLoadingHide(
-          FAST_LOADING_OVERLAY_MS
+        setLoading(
+          true
         );
       }
 
       google.script.run
-        .withSuccessHandler(function (result) {
-          try {
-            if (
-              permissionTokenAtRequest ===
-              permissionActionToken
-            ) {
-              renderDashboard(result);
-            }
-          } catch (error) {
-            console.error(
-              'Gagal memperbarui dashboard:',
-              error
-            );
+        .withSuccessHandler(
+          function (result) {
+            try {
+              fullDashboardLoaded =
+                true;
 
-            if (showLoading) {
-              showMessage(
-                'appMessage',
-                'Dashboard gagal diperbarui. Silakan coba lagi.',
-                'warning'
+              renderDashboard(
+                result
+              );
+            } catch (error) {
+              console.error(
+                'Gagal memperbarui dashboard:',
+                error
+              );
+
+              if (showLoading) {
+                showMessage(
+                  'appMessage',
+                  'Dashboard gagal diperbarui. Silakan coba lagi.',
+                  'warning'
+                );
+              }
+            } finally {
+              if (showLoading) {
+                setLoading(
+                  false
+                );
+              }
+
+              /*
+               * Setelah full refresh, polling live dilanjutkan.
+               */
+              scheduleNextLiveRefresh(
+                1200
               );
             }
-          } finally {
-            dashboardRequestInFlight = false;
-
+          }
+        )
+        .withFailureHandler(
+          function (error) {
             if (showLoading) {
-              setLoading(false);
+              handleServerError(
+                error,
+                'appMessage'
+              );
+            } else {
+              console.error(
+                error
+              );
             }
-          }
-        })
-        .withFailureHandler(function (error) {
-          dashboardRequestInFlight = false;
 
-          if (showLoading) {
-            handleServerError(error, 'appMessage');
-          } else {
-            console.error(error);
+            scheduleNextLiveRefresh(
+              3000
+            );
           }
-        })
+        )
         .getDashboardData({
-          username: credentials.username,
-          password: credentials.password
+          username:
+            credentials.username,
+
+          password:
+            credentials.password
         });
     }
 
-    function startAutoRefresh() {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
 
-      refreshInterval = setInterval(function () {
-        refreshDashboard(false);
-      }, 15000);
+    function startAutoRefresh() {
+      liveRefreshFailureCount =
+        0;
+
+      scheduleNextLiveRefresh(
+        1200
+      );
     }
 
+
     function renderDashboard(data) {
+      const incomingGeneratedMs =
+        Number(
+          data &&
+          data.generatedMs
+            ? data.generatedMs
+            : 0
+        );
+
+      /*
+       * Jangan izinkan response polling lama menimpa
+       * response START/END yang lebih baru.
+       */
+      if (
+        incomingGeneratedMs &&
+        incomingGeneratedMs <
+          lastDashboardGeneratedMs
+      ) {
+        return;
+      }
+
+      if (incomingGeneratedMs) {
+        lastDashboardGeneratedMs =
+          incomingGeneratedMs;
+      }
+
       dashboardData = data || {
         active: [],
         today: [],
@@ -8320,7 +7326,6 @@
       }
 
       updateCountdowns();
-      saveDashboardCache();
     }
 
     function renderProfile() {
@@ -8436,11 +7441,7 @@
         }
       } else {
         const isLate =
-          isPermissionLateAt(
-            ownActive,
-            current.batasMenit,
-            Date.now()
-          );
+          Date.now() > Number(ownActive.deadlineMs);
 
         statusBox.className =
           'permission-status ' +
@@ -8546,15 +7547,9 @@
         if (el) el.textContent = value;
       };
 
-      const normalizedResultStats =
-        countNormalizedHistoryResults(
-          dashboardData.shift || [],
-          false
-        );
-
       setText('shiftSummaryTotal', Number(stats.total || 0));
-      setText('shiftSummarySafe', normalizedResultStats.aman);
-      setText('shiftSummaryLate', normalizedResultStats.telat);
+      setText('shiftSummarySafe', Number(stats.aman || 0));
+      setText('shiftSummaryLate', Number(stats.telat || 0));
       setText('shiftSummaryMine', Number(stats.milikSaya || 0));
 
       const desc = document.getElementById('shiftHistoryDescription');
@@ -8624,127 +7619,6 @@
     }
 
 
-    function getHistoryStaffKey(row) {
-      const username =
-        String(
-          row && row.username
-            ? row.username
-            : ''
-        )
-          .trim()
-          .toLowerCase();
-
-      if (username) {
-        return 'u:' + username;
-      }
-
-      return (
-        'n:' +
-        String(row && row.nama ? row.nama : '')
-          .trim()
-          .toLowerCase() +
-        '|s:' +
-        String(row && row.status ? row.status : '')
-          .trim()
-          .toLowerCase()
-      );
-    }
-
-
-    function getHistoryPermissionSequence(
-      row,
-      sourceRows,
-      forcePreviousDay
-    ) {
-      const targetKey =
-        getHistoryStaffKey(row);
-
-      const sameStaff =
-        (sourceRows || [])
-          .map(function (item, originalIndex) {
-            return {
-              row: item,
-              originalIndex: originalIndex,
-              key: getHistoryStaffKey(item),
-              startMs: getHistoryRowStartMs(
-                item,
-                Boolean(forcePreviousDay)
-              )
-            };
-          })
-          .filter(function (item) {
-            return item.key === targetKey;
-          });
-
-      if (!sameStaff.length) {
-        return 1;
-      }
-
-      /*
-       * HANYA menghitung nomor izin.
-       * Array asli / urutan tabel TIDAK pernah diubah.
-       */
-      const chronological =
-        sameStaff.slice().sort(function (a, b) {
-          const aStart = Number(a.startMs || 0);
-          const bStart = Number(b.startMs || 0);
-
-          if (aStart > 0 && bStart > 0 && aStart !== bStart) {
-            return aStart - bStart;
-          }
-
-          if (aStart > 0 && !(bStart > 0)) {
-            return -1;
-          }
-
-          if (!(aStart > 0) && bStart > 0) {
-            return 1;
-          }
-
-          return b.originalIndex - a.originalIndex;
-        });
-
-      const objectIndex =
-        chronological.findIndex(function (item) {
-          return item.row === row;
-        });
-
-      if (objectIndex >= 0) {
-        return objectIndex + 1;
-      }
-
-      /*
-       * Fallback bila object pernah disalin oleh browser/server.
-       */
-      const targetStart =
-        getHistoryRowStartMs(
-          row,
-          Boolean(forcePreviousDay)
-        );
-
-      const fallbackIndex =
-        chronological.findIndex(function (item) {
-          if (
-            Number(targetStart || 0) > 0 &&
-            Number(item.startMs || 0) > 0
-          ) {
-            return Number(item.startMs) === Number(targetStart);
-          }
-
-          return (
-            String(item.row && item.row.jamKeluar || '') ===
-              String(row && row.jamKeluar || '') &&
-            String(item.row && item.row.nama || '') ===
-              String(row && row.nama || '')
-          );
-        });
-
-      return fallbackIndex >= 0
-        ? fallbackIndex + 1
-        : sameStaff.length;
-    }
-
-
     function renderShiftHistoryTable() {
       const body = document.getElementById('shiftHistoryTableBody');
       if (!body) return;
@@ -8753,17 +7627,10 @@
       const query = String(search ? search.value : '').trim().toLowerCase();
       const rows = (dashboardData.shift || []).filter(function (row) {
         if (!query) return true;
-
-        const view =
-          getHistoryRowView(
-            row,
-            false
-          );
-
         return String(row.nama || '').toLowerCase().includes(query) ||
           String(row.status || '').toLowerCase().includes(query) ||
           String(row.jamKeluar || '').toLowerCase().includes(query) ||
-          String(view.result || '').toLowerCase().includes(query);
+          String(row.hasil || '').toLowerCase().includes(query);
       });
 
       if (!rows.length) {
@@ -8772,38 +7639,15 @@
       }
 
       body.innerHTML = rows.map(function (row) {
-        const view =
-          getHistoryRowView(
-            row,
-            false
-          );
-
-        const permissionSequence =
-          view.active
-            ? getHistoryPermissionSequence(
-                row,
-                dashboardData.shift || [],
-                false
-              )
-            : 0;
-
         return `
-          <tr
-            class="${view.late ? 'permission-late-row' : ''}"
-            data-history-row="1"
-            data-history-active="${view.active ? '1' : '0'}"
-            data-history-start-ms="${Number(view.startMs || 0)}"
-          >
+          <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali || '-')}</td>
-            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
-            <td
-              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
-              data-history-result-cell="1"
-            >${resultBadge(view.result, permissionSequence)}</td>
+            <td>${escapeHtml(row.batasKembali)}</td>
+            <td>${escapeHtml(row.jamKembali)}</td>
+            <td>${escapeHtml(row.durasi)}</td>
+            <td>${resultBadge(row.hasil)}</td>
           </tr>
         `;
       }).join('');
@@ -8833,17 +7677,11 @@
       document.getElementById('historyTodaySummaryTotal').textContent =
         stats.total || 0;
 
-      const normalizedResultStats =
-        countNormalizedHistoryResults(
-          dashboardData.today || [],
-          false
-        );
-
       document.getElementById('historyTodaySummarySafe').textContent =
-        normalizedResultStats.aman;
+        stats.aman || 0;
 
       document.getElementById('historyTodaySummaryLate').textContent =
-        normalizedResultStats.telat;
+        stats.telat || 0;
 
       document.getElementById('historyTodaySummaryMine').textContent =
         stats.milikSaya || 0;
@@ -8874,17 +7712,11 @@
             return true;
           }
 
-          const view =
-            getHistoryRowView(
-              row,
-              false
-            );
-
           return (
             String(row.nama || '').toLowerCase().includes(query) ||
             String(row.status || '').toLowerCase().includes(query) ||
             String(row.jamKeluar || '').toLowerCase().includes(query) ||
-            String(view.result || '').toLowerCase().includes(query)
+            String(row.hasil || '').toLowerCase().includes(query)
           );
         });
 
@@ -8895,38 +7727,15 @@
       }
 
       body.innerHTML = rows.map(function (row) {
-        const view =
-          getHistoryRowView(
-            row,
-            false
-          );
-
-        const permissionSequence =
-          view.active
-            ? getHistoryPermissionSequence(
-                row,
-                dashboardData.today || [],
-                false
-              )
-            : 0;
-
         return `
-          <tr
-            class="${view.late ? 'permission-late-row' : ''}"
-            data-history-row="1"
-            data-history-active="${view.active ? '1' : '0'}"
-            data-history-start-ms="${Number(view.startMs || 0)}"
-          >
+          <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali || '-')}</td>
-            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
-            <td
-              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
-              data-history-result-cell="1"
-            >${resultBadge(view.result, permissionSequence)}</td>
+            <td>${escapeHtml(row.batasKembali)}</td>
+            <td>${escapeHtml(row.jamKembali)}</td>
+            <td>${escapeHtml(row.durasi)}</td>
+            <td>${resultBadge(row.hasil)}</td>
           </tr>
         `;
       }).join('');
@@ -8940,17 +7749,11 @@
       document.getElementById('yesterdaySummaryTotal').textContent =
         stats.total || 0;
 
-      const normalizedResultStats =
-        countNormalizedHistoryResults(
-          dashboardData.yesterday || [],
-          true
-        );
-
       document.getElementById('yesterdaySummarySafe').textContent =
-        normalizedResultStats.aman;
+        stats.aman || 0;
 
       document.getElementById('yesterdaySummaryLate').textContent =
-        normalizedResultStats.telat;
+        stats.telat || 0;
 
       document.getElementById('yesterdaySummaryMine').textContent =
         stats.milikSaya || 0;
@@ -8984,17 +7787,11 @@
             return true;
           }
 
-          const view =
-            getHistoryRowView(
-              row,
-              true
-            );
-
           return (
             String(row.nama || '').toLowerCase().includes(query) ||
             String(row.status || '').toLowerCase().includes(query) ||
             String(row.jamKeluar || '').toLowerCase().includes(query) ||
-            String(view.result || '').toLowerCase().includes(query)
+            String(row.hasil || '').toLowerCase().includes(query)
           );
         });
 
@@ -9005,38 +7802,15 @@
       }
 
       body.innerHTML = rows.map(function (row) {
-        const view =
-          getHistoryRowView(
-            row,
-            true
-          );
-
-        const permissionSequence =
-          view.active
-            ? getHistoryPermissionSequence(
-                row,
-                dashboardData.yesterday || [],
-                true
-              )
-            : 0;
-
         return `
-          <tr
-            class="${view.late ? 'permission-late-row' : ''}"
-            data-history-row="1"
-            data-history-active="${view.active ? '1' : '0'}"
-            data-history-start-ms="${Number(view.startMs || 0)}"
-          >
+          <tr>
             <td><strong>${escapeHtml(getDisplayName(row.nama))}</strong></td>
             <td>${escapeHtml(row.status)}</td>
             <td>${escapeHtml(formatClockDisplay(row.jamKeluar))}</td>
-            <td>${escapeHtml(row.batasKembali || '-')}</td>
-            <td>${escapeHtml(normalizeReturnClock(row.jamKembali))}</td>
-            <td class="history-duration-cell ${view.active ? 'running' : ''}">${escapeHtml(normalizeHistoryDuration(row, view))}</td>
-            <td
-              class="permission-result-cell ${view.late ? 'late-blink-cell' : ''}"
-              data-history-result-cell="1"
-            >${resultBadge(view.result, permissionSequence)}</td>
+            <td>${escapeHtml(row.batasKembali)}</td>
+            <td>${escapeHtml(row.jamKembali)}</td>
+            <td>${escapeHtml(row.durasi)}</td>
+            <td>${resultBadge(row.hasil)}</td>
           </tr>
         `;
       }).join('');
@@ -9460,389 +8234,6 @@
     }
 
 
-    function showAdminActionMessage(elementId, message, type) {
-      const box =
-        document.getElementById(elementId);
-
-      if (!box) {
-        return;
-      }
-
-      const clean =
-        String(message || '')
-          .replace(/^(?:Exception|Error):\s*/i, '')
-          .trim();
-
-      if (!clean) {
-        box.textContent = '';
-        box.className =
-          'admin-add-login-message';
-        return;
-      }
-
-      box.textContent = clean;
-      box.className =
-        'admin-add-login-message show ' +
-        (type || 'info');
-    }
-
-
-    function setAdminActionButtonBusy(
-      buttonId,
-      busy,
-      busyText
-    ) {
-      const button =
-        document.getElementById(buttonId);
-
-      if (!button) {
-        return;
-      }
-
-      if (!button.dataset.originalText) {
-        button.dataset.originalText =
-          String(button.textContent || '').trim();
-      }
-
-      button.disabled = Boolean(busy);
-      button.textContent =
-        busy
-          ? (busyText || 'MEMPROSES...')
-          : button.dataset.originalText;
-    }
-
-
-    function normalizeAdminActionResponse(rawResult) {
-      let result = rawResult;
-
-      for (let depth = 0; depth < 3; depth += 1) {
-        if (
-          result &&
-          typeof result === 'object' &&
-          result.result &&
-          typeof result.result === 'object'
-        ) {
-          result = result.result;
-          continue;
-        }
-
-        if (
-          result &&
-          typeof result === 'object' &&
-          result.data &&
-          typeof result.data === 'object' &&
-          (
-            Object.prototype.hasOwnProperty.call(result.data, 'ok') ||
-            Object.prototype.hasOwnProperty.call(result.data, 'success') ||
-            Object.prototype.hasOwnProperty.call(result.data, 'error') ||
-            result.data.message ||
-            result.data.dashboard ||
-            result.data.ipSettings ||
-            result.data.current ||
-            result.data.admin ||
-            result.data.settings
-          )
-        ) {
-          result = result.data;
-          continue;
-        }
-
-        break;
-      }
-
-      return result;
-    }
-
-
-    function isAdminActionFailure(result) {
-      if (!result || typeof result !== 'object') {
-        return false;
-      }
-
-      if (
-        result.ok === false ||
-        result.success === false ||
-        result.error === true
-      ) {
-        return true;
-      }
-
-      const type =
-        String(result.type || '')
-          .trim()
-          .toLowerCase();
-
-      return type === 'error' || type === 'danger';
-    }
-
-
-    function getAdminActionErrorMessage(error, actionName) {
-      const raw =
-        error && error.message
-          ? error.message
-          : String(error || 'Aksi admin gagal diproses.');
-
-      const clean =
-        raw.replace(/^(?:Exception|Error):\s*/i, '').trim();
-
-      const lower = clean.toLowerCase();
-      const actionLower =
-        String(actionName || '').toLowerCase();
-
-      if (
-        actionLower &&
-        lower.includes(actionLower) &&
-        (
-          lower.includes('not found') ||
-          lower.includes('unknown') ||
-          lower.includes('tidak ditemukan') ||
-          lower.includes('not allowed') ||
-          lower.includes('tidak diizinkan')
-        )
-      ) {
-        return (
-          'Backend belum menerima action ' +
-          actionName +
-          '. Periksa /api/apps-script atau Code.gs.'
-        );
-      }
-
-      return clean || 'Aksi admin gagal diproses.';
-    }
-
-
-    function getAdminDashboardFromResponse(result) {
-      if (!result || typeof result !== 'object') {
-        return null;
-      }
-
-      if (
-        result.dashboard &&
-        typeof result.dashboard === 'object'
-      ) {
-        return result.dashboard;
-      }
-
-      if (
-        result.current ||
-        result.admin ||
-        result.settings ||
-        result.today ||
-        result.shift
-      ) {
-        return result;
-      }
-
-      return null;
-    }
-
-
-    function runAdminAction(
-      actionName,
-      payload,
-      options
-    ) {
-      const opts = options || {};
-      const buttonId = opts.buttonId || '';
-      const messageId = opts.messageId || '';
-      const processingText =
-        opts.processingText || 'Memproses perubahan...';
-      const successText =
-        opts.successText || 'Perubahan berhasil disimpan.';
-
-      if (!canViewSettings()) {
-        const accessMessage =
-          'Akses pengaturan admin hanya tersedia untuk CS LINE.';
-        showAdminActionMessage(
-          messageId,
-          accessMessage,
-          'warning'
-        );
-        showMessage(
-          'adminSettingsMessage',
-          accessMessage,
-          'warning'
-        );
-        return;
-      }
-
-      clearMessage('adminSettingsMessage');
-      showAdminActionMessage(
-        messageId,
-        processingText,
-        'info'
-      );
-      setAdminActionButtonBusy(
-        buttonId,
-        true,
-        opts.busyButtonText || 'MEMPROSES...'
-      );
-
-      let runner =
-        google.script.run
-          .withSuccessHandler(function (rawResult) {
-            try {
-              const result =
-                normalizeAdminActionResponse(rawResult);
-
-              if (isAdminActionFailure(result)) {
-                const failedMessage =
-                  result && result.message
-                    ? result.message
-                    : 'Server menolak perubahan.';
-
-                showAdminActionMessage(
-                  messageId,
-                  failedMessage,
-                  result && result.type
-                    ? result.type
-                    : 'error'
-                );
-                showMessage(
-                  'adminSettingsMessage',
-                  failedMessage,
-                  result && result.type
-                    ? result.type
-                    : 'error'
-                );
-                return;
-              }
-
-              if (
-                result &&
-                result.ipSettings
-              ) {
-                renderAdminIpSettings(
-                  result.ipSettings
-                );
-              }
-
-              const nextDashboard =
-                getAdminDashboardFromResponse(result);
-
-              if (nextDashboard) {
-                renderDashboard(nextDashboard);
-              }
-
-              if (
-                typeof opts.onSuccess === 'function'
-              ) {
-                opts.onSuccess(result || {});
-              }
-
-              const message =
-                result && result.message
-                  ? result.message
-                  : successText;
-
-              showAdminActionMessage(
-                messageId,
-                message,
-                'success'
-              );
-              showMessage(
-                'adminSettingsMessage',
-                message,
-                'success'
-              );
-
-              /*
-               * Beberapa backend hanya mengembalikan {ok,message}.
-               * Sinkronkan dashboard agar dropdown / angka langsung berubah.
-               */
-              if (
-                opts.refresh !== false &&
-                !nextDashboard
-              ) {
-                setTimeout(function () {
-                  refreshDashboard(false);
-                }, 220);
-              }
-            } catch (error) {
-              const message =
-                getAdminActionErrorMessage(
-                  error,
-                  actionName
-                );
-
-              console.error(
-                'Gagal memproses respons ' + actionName + ':',
-                error
-              );
-
-              showAdminActionMessage(
-                messageId,
-                message,
-                'error'
-              );
-              showMessage(
-                'adminSettingsMessage',
-                message,
-                'error'
-              );
-            } finally {
-              setAdminActionButtonBusy(
-                buttonId,
-                false
-              );
-            }
-          })
-          .withFailureHandler(function (error) {
-            setAdminActionButtonBusy(
-              buttonId,
-              false
-            );
-
-            const message =
-              getAdminActionErrorMessage(
-                error,
-                actionName
-              );
-
-            showAdminActionMessage(
-              messageId,
-              message,
-              'error'
-            );
-            showMessage(
-              'adminSettingsMessage',
-              message,
-              'error'
-            );
-          });
-
-      try {
-        runner[actionName](
-          payload === undefined
-            ? {}
-            : payload
-        );
-      } catch (error) {
-        setAdminActionButtonBusy(
-          buttonId,
-          false
-        );
-
-        const message =
-          getAdminActionErrorMessage(
-            error,
-            actionName
-          );
-
-        showAdminActionMessage(
-          messageId,
-          message,
-          'error'
-        );
-        showMessage(
-          'adminSettingsMessage',
-          message,
-          'error'
-        );
-      }
-    }
-
-
     function adminUseCurrentIp() {
       const input =
         document.getElementById(
@@ -9855,163 +8246,257 @@
 
       const currentIp =
         String(
-          currentIpSettings.currentIp || ''
+          currentIpSettings.currentIp ||
+          ''
         ).trim();
 
-      if (!currentIp || currentIp === '-') {
-        showAdminActionMessage(
-          'adminIpMessage',
+      if (
+        !currentIp ||
+        currentIp === '-'
+      ) {
+        showMessage(
+          'adminSettingsMessage',
           'IP saat ini belum dapat dikenali.',
           'warning'
         );
+
         return;
       }
 
-      input.value = currentIp;
-      showAdminActionMessage(
-        'adminIpMessage',
-        'IP saat ini sudah dimasukkan ke kolom. Tekan TAMBAH IP untuk menyimpan.',
-        'info'
-      );
+      input.value =
+        currentIp;
     }
 
 
     function adminAddIp() {
       const input =
-        document.getElementById('adminIpInput');
+        document.getElementById(
+          'adminIpInput'
+        );
+
       const description =
-        document.getElementById('adminIpDescription');
+        document.getElementById(
+          'adminIpDescription'
+        );
 
       const ip =
-        String(input ? input.value : '').trim();
-      const note =
-        String(description ? description.value : '').trim();
+        String(
+          input
+            ? input.value
+            : ''
+        ).trim();
 
       if (!ip) {
-        showAdminActionMessage(
-          'adminIpMessage',
+        showMessage(
+          'adminSettingsMessage',
           'Isi IP yang akan diizinkan.',
           'warning'
         );
-        if (input) input.focus();
+
         return;
       }
 
-      runAdminAction(
-        'adminTambahIp',
-        Object.assign(
-          getAdminPayload(),
-          { ip: ip, keterangan: note }
-        ),
-        {
-          buttonId: 'adminAddIpButton',
-          messageId: 'adminIpMessage',
-          processingText: 'Menambahkan IP ' + ip + '...',
-          busyButtonText: 'MENAMBAHKAN...',
-          successText: 'IP berhasil ditambahkan.',
-          onSuccess: function (result) {
-            if (input) input.value = '';
-            if (description) description.value = '';
-            if (result && result.ipSettings) {
-              renderAdminIpSettings(result.ipSettings);
-            } else {
-              setTimeout(loadAdminIpSettings, 180);
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              if (input) {
+                input.value =
+                  '';
+              }
+
+              if (description) {
+                description.value =
+                  '';
+              }
+
+              renderAdminIpSettings(
+                result.ipSettings
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'IP berhasil ditambahkan.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
             }
           }
-        }
-      );
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminTambahIp(
+          Object.assign(
+            getAdminPayload(),
+            {
+              ip:
+                ip,
+
+              keterangan:
+                description
+                  ? description.value
+                  : ''
+            }
+          )
+        );
     }
 
 
     function adminDeleteIp() {
       const select =
-        document.getElementById('adminAllowedIpSelect');
-      const option =
-        select && select.options[select.selectedIndex];
+        document.getElementById(
+          'adminAllowedIpSelect'
+        );
 
-      if (!select || !select.value || !option) {
-        showAdminActionMessage(
-          'adminIpMessage',
+      const option =
+        select &&
+        select.options[
+          select.selectedIndex
+        ];
+
+      if (
+        !select ||
+        !select.value ||
+        !option
+      ) {
+        showMessage(
+          'adminSettingsMessage',
           'Pilih IP yang akan dihapus.',
           'warning'
         );
+
         return;
       }
 
-      const ip = option.dataset.ip || option.textContent || '';
+      setLoading(
+        true
+      );
 
-      if (!window.confirm('Hapus IP yang dipilih: ' + ip + '?')) {
-        return;
-      }
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              renderAdminIpSettings(
+                result.ipSettings
+              );
 
-      runAdminAction(
-        'adminHapusIp',
-        Object.assign(
-          getAdminPayload(),
-          {
-            rowNumber: Number(select.value),
-            ip: option.dataset.ip || ''
-          }
-        ),
-        {
-          buttonId: 'adminDeleteIpButton',
-          messageId: 'adminIpMessage',
-          processingText: 'Menghapus IP...',
-          busyButtonText: 'MENGHAPUS...',
-          successText: 'IP berhasil dihapus.',
-          onSuccess: function (result) {
-            if (result && result.ipSettings) {
-              renderAdminIpSettings(result.ipSettings);
-            } else {
-              setTimeout(loadAdminIpSettings, 180);
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'IP berhasil dihapus.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
             }
           }
-        }
-      );
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminHapusIp(
+          Object.assign(
+            getAdminPayload(),
+            {
+              rowNumber:
+                Number(
+                  select.value
+                ),
+
+              ip:
+                option.dataset.ip ||
+                ''
+            }
+          )
+        );
     }
 
 
     function adminToggleIpRestriction() {
       const enabled =
-        !Boolean(currentIpSettings.enabled);
+        !Boolean(
+          currentIpSettings.enabled
+        );
 
       if (
         enabled &&
-        !(currentIpSettings.allowedIps || []).length
+        !(
+          currentIpSettings.allowedIps ||
+          []
+        ).length
       ) {
-        showAdminActionMessage(
-          'adminIpMessage',
+        showMessage(
+          'adminSettingsMessage',
           'Tambahkan minimal 1 IP sebelum mengaktifkan pembatasan.',
           'warning'
         );
+
         return;
       }
 
-      runAdminAction(
-        'adminSetIpRestriction',
-        Object.assign(
-          getAdminPayload(),
-          { enabled: enabled }
-        ),
-        {
-          buttonId: 'adminIpToggleButton',
-          messageId: 'adminIpMessage',
-          processingText: enabled
-            ? 'Mengaktifkan pembatasan IP...'
-            : 'Menonaktifkan pembatasan IP...',
-          busyButtonText: 'MEMPROSES...',
-          successText: enabled
-            ? 'Pembatasan IP berhasil diaktifkan.'
-            : 'Pembatasan IP berhasil dinonaktifkan.',
-          onSuccess: function (result) {
-            if (result && result.ipSettings) {
-              renderAdminIpSettings(result.ipSettings);
-            } else {
-              setTimeout(loadAdminIpSettings, 180);
+      setLoading(
+        true
+      );
+
+      google.script.run
+        .withSuccessHandler(
+          function (result) {
+            try {
+              renderAdminIpSettings(
+                result.ipSettings
+              );
+
+              showMessage(
+                'adminSettingsMessage',
+                result.message ||
+                'Pengaturan IP berhasil diperbarui.',
+                'success'
+              );
+            } finally {
+              setLoading(
+                false
+              );
             }
           }
-        }
-      );
+        )
+        .withFailureHandler(
+          function (error) {
+            handleServerError(
+              error,
+              'adminSettingsMessage'
+            );
+          }
+        )
+        .adminSetIpRestriction(
+          Object.assign(
+            getAdminPayload(),
+            {
+              enabled:
+                enabled
+            }
+          )
+        );
     }
 
 
@@ -10081,35 +8566,20 @@
 
 
     function adminRefreshSuccess(
-      rawResult,
+      result,
       fallbackMessage
     ) {
       try {
-        const result =
-          normalizeAdminActionResponse(rawResult);
-
-        const nextDashboard =
-          getAdminDashboardFromResponse(result);
-
-        if (nextDashboard) {
-          renderDashboard(nextDashboard);
-        } else {
-          setTimeout(function () {
-            refreshDashboard(false);
-          }, 220);
-        }
+        renderDashboard(
+          result.dashboard
+        );
 
         showMessage(
           'adminSettingsMessage',
-          result && result.message
-            ? result.message
-            : (
-                fallbackMessage ||
-                'Perubahan berhasil disimpan.'
-              ),
-          result && result.type
-            ? result.type
-            : 'success'
+          result.message ||
+            fallbackMessage ||
+            'Perubahan berhasil disimpan.',
+          result.type || 'success'
         );
       } finally {
         setLoading(false);
@@ -10119,27 +8589,32 @@
 
     function adminDeletePermission() {
       const select =
-        document.getElementById('adminDeletePermissionSelect');
-      const option =
-        select && select.options[select.selectedIndex];
+        document.getElementById(
+          'adminDeletePermissionSelect'
+        );
 
-      if (!select || !select.value || !option) {
-        showAdminActionMessage(
-          'adminDeletePermissionMessage',
+      const option =
+        select &&
+        select.options[
+          select.selectedIndex
+        ];
+
+      if (
+        !select ||
+        !select.value ||
+        !option
+      ) {
+        showMessage(
+          'adminSettingsMessage',
           'Pilih data jam izin yang akan dihapus.',
           'warning'
         );
         return;
       }
 
-      const label =
-        String(option.textContent || 'data izin').trim();
-
       if (
-        !window.confirm(
-          'Hapus data jam izin ini?\n\n' +
-          label +
-          '\n\nData akan hilang dari riwayat dan jatah shift ikut dihitung ulang.'
+        !confirm(
+          'Hapus data jam izin yang dipilih? Data ini akan dihapus dari sheet IZIN.'
         )
       ) {
         return;
@@ -10149,440 +8624,90 @@
         Object.assign(
           getAdminPayload(),
           {
-            rowNumber: Number(select.value),
-            targetUsername: option.dataset.username || '',
-            startMs: Number(option.dataset.startMs || 0)
+            rowNumber:
+              Number(select.value),
+
+            targetUsername:
+              option.dataset.username || '',
+
+            startMs:
+              Number(
+                option.dataset.startMs || 0
+              )
           }
         );
 
-      runAdminAction(
-        'adminHapusJamIzin',
-        payload,
-        {
-          buttonId: 'adminDeletePermissionButton',
-          messageId: 'adminDeletePermissionMessage',
-          processingText: 'Menghapus data jam izin...',
-          busyButtonText: 'MENGHAPUS...',
-          successText: 'Jam izin berhasil dihapus.'
-        }
-      );
-    }
+      setLoading(true);
 
-
-    function setAdminAddLoginBusy(busy) {
-      const button =
-        document.getElementById(
-          'adminAddLoginButton'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.disabled =
-        Boolean(busy);
-
-      button.textContent =
-        busy
-          ? 'MENAMBAHKAN...'
-          : 'TAMBAH DATA';
-    }
-
-
-    function showAdminAddLoginMessage(
-      message,
-      type
-    ) {
-      const box =
-        document.getElementById(
-          'adminAddLoginMessage'
-        );
-
-      if (!box) {
-        return;
-      }
-
-      const clean =
-        String(message || '')
-          .replace(
-            /^(?:Exception|Error):\s*/i,
-            ''
-          )
-          .trim();
-
-      if (!clean) {
-        box.textContent = '';
-        box.className =
-          'admin-add-login-message';
-        return;
-      }
-
-      box.textContent = clean;
-      box.className =
-        'admin-add-login-message show ' +
-        (type || 'info');
-    }
-
-
-    function getAdminAddLoginResponse(rawResult) {
-      let result = rawResult;
-
-      /*
-       * Bridge /api/apps-script pada deploy berbeda kadang
-       * membungkus hasil di "result" atau "data".
-       * Normalisasi di sini agar Tambah Akun tetap membaca
-       * response yang benar tanpa mengubah fungsi lain.
-       */
-      if (
-        result &&
-        typeof result === 'object' &&
-        result.result &&
-        typeof result.result === 'object'
-      ) {
-        result = result.result;
-      } else if (
-        result &&
-        typeof result === 'object' &&
-        result.data &&
-        typeof result.data === 'object' &&
-        (
-          Object.prototype.hasOwnProperty.call(result.data, 'ok') ||
-          Object.prototype.hasOwnProperty.call(result.data, 'success') ||
-          result.data.message ||
-          result.data.dashboard
-        )
-      ) {
-        result = result.data;
-      }
-
-      return result;
-    }
-
-
-    function getAdminAddLoginErrorMessage(error) {
-      const raw =
-        error && error.message
-          ? error.message
-          : String(
-              error ||
-              'Gagal menambahkan akun.'
-            );
-
-      const message =
-        raw.replace(
-          /^(?:Exception|Error):\s*/i,
-          ''
-        );
-
-      const lower =
-        message.toLowerCase();
-
-      if (
-        lower.includes('admintambahlogin') &&
-        (
-          lower.includes('not found') ||
-          lower.includes('unknown') ||
-          lower.includes('tidak ditemukan') ||
-          lower.includes('not allowed') ||
-          lower.includes('tidak diizinkan')
-        )
-      ) {
-        return (
-          'Backend belum menerima action adminTambahLogin. ' +
-          'Perlu menambahkan action tersebut pada /api/apps-script atau Code.gs.'
-        );
-      }
-
-      return message;
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Jam izin berhasil dihapus.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminHapusJamIzin(payload);
     }
 
 
     function adminAddLogin() {
-      showAdminAddLoginMessage(
-        '',
-        'info'
-      );
-
-      if (!canViewSettings()) {
-        const message =
-          'Akses tambah akun hanya tersedia untuk CS LINE.';
-
-        showAdminAddLoginMessage(
-          message,
-          'warning'
-        );
-
-        showMessage(
-          'adminSettingsMessage',
-          message,
-          'warning'
-        );
-        return;
-      }
-
-      const usernameInput =
-        document.getElementById(
-          'adminNewUsername'
-        );
-
-      const passwordInput =
-        document.getElementById(
-          'adminNewPassword'
-        );
-
-      const nameInput =
-        document.getElementById(
-          'adminNewName'
-        );
-
-      const statusSelect =
-        document.getElementById(
-          'adminNewStatus'
-        );
-
-      if (
-        !usernameInput ||
-        !passwordInput ||
-        !nameInput ||
-        !statusSelect
-      ) {
-        const message =
-          'Form tambah akun belum siap. Silakan refresh halaman.';
-
-        showAdminAddLoginMessage(
-          message,
-          'error'
-        );
-        return;
-      }
-
-      const newUsername =
-        String(usernameInput.value || '')
-          .trim();
-
-      const newPassword =
-        String(passwordInput.value || '')
-          .trim();
-
-      const newName =
-        String(nameInput.value || '')
-          .trim();
-
-      const newStatus =
-        String(statusSelect.value || '')
-          .trim();
-
-      if (
-        !newUsername ||
-        !newPassword ||
-        !newName ||
-        !newStatus
-      ) {
-        showAdminAddLoginMessage(
-          'Username, password, nama staff, dan jabatan wajib diisi.',
-          'warning'
-        );
-        return;
-      }
-
-      /* Password akun cukup 1 karakter: huruf atau angka diperbolehkan. */
-      if (newPassword.length < 1) {
-        showAdminAddLoginMessage(
-          'Password minimal 1 karakter.',
-          'warning'
-        );
-        passwordInput.focus();
-        return;
-      }
-
-      if (/\s/.test(newUsername)) {
-        showAdminAddLoginMessage(
-          'Username tidak boleh mengandung spasi.',
-          'warning'
-        );
-        usernameInput.focus();
-        return;
-      }
-
-      if (
-        !credentials.username ||
-        !credentials.password
-      ) {
-        showAdminAddLoginMessage(
-          'Session admin belum siap. Silakan refresh atau login kembali.',
-          'warning'
-        );
-        return;
-      }
-
-      const existingStaff =
-        dashboardData &&
-        dashboardData.admin &&
-        Array.isArray(dashboardData.admin.staff)
-          ? dashboardData.admin.staff
-          : [];
-
-      const duplicate =
-        existingStaff.some(function (row) {
-          return (
-            String(row.username || '')
-              .trim()
-              .toLowerCase() ===
-            newUsername.toLowerCase()
-          );
-        });
-
-      if (duplicate) {
-        showAdminAddLoginMessage(
-          'Username "' + newUsername + '" sudah terdaftar.',
-          'warning'
-        );
-        usernameInput.focus();
-        return;
-      }
-
       const payload =
         Object.assign(
           getAdminPayload(),
           {
-            newUsername: newUsername,
-            newPassword: newPassword,
-            newName: newName,
-            newStatus: newStatus
+            newUsername:
+              document.getElementById(
+                'adminNewUsername'
+              ).value,
+
+            newPassword:
+              document.getElementById(
+                'adminNewPassword'
+              ).value,
+
+            newName:
+              document.getElementById(
+                'adminNewName'
+              ).value,
+
+            newStatus:
+              document.getElementById(
+                'adminNewStatus'
+              ).value
           }
         );
 
-      clearMessage(
-        'adminSettingsMessage'
-      );
-
-      showAdminAddLoginMessage(
-        'Menambahkan akun "' +
-          newUsername +
-          '" sebagai ' +
-          newStatus +
-          '...',
-        'info'
-      );
-
-      setAdminAddLoginBusy(true);
+      setLoading(true);
 
       google.script.run
-        .withSuccessHandler(function (rawResult) {
-          try {
-            const result =
-              getAdminAddLoginResponse(
-                rawResult
-              );
+        .withSuccessHandler(function (result) {
+          document.getElementById(
+            'adminNewUsername'
+          ).value = '';
 
-            if (
-              !result ||
-              result.ok === false ||
-              result.success === false ||
-              result.error === true
-            ) {
-              const message =
-                result && result.message
-                  ? result.message
-                  : 'Akun gagal ditambahkan. Server tidak mengembalikan status sukses.';
+          document.getElementById(
+            'adminNewPassword'
+          ).value = '';
 
-              showAdminAddLoginMessage(
-                message,
-                result && result.type
-                  ? result.type
-                  : 'error'
-              );
+          document.getElementById(
+            'adminNewName'
+          ).value = '';
 
-              showMessage(
-                'adminSettingsMessage',
-                message,
-                result && result.type
-                  ? result.type
-                  : 'error'
-              );
-              return;
-            }
-
-            /*
-             * Form hanya dibersihkan sesudah server sukses.
-             */
-            usernameInput.value = '';
-            passwordInput.value = '';
-            nameInput.value = '';
-
-            const nextDashboard =
-              result.dashboard ||
-              (
-                result.data &&
-                result.data.dashboard
-                  ? result.data.dashboard
-                  : null
-              );
-
-            if (nextDashboard) {
-              renderDashboard(
-                nextDashboard
-              );
-            }
-
-            const successMessage =
-              result.message ||
-              (
-                'Akun "' +
-                newUsername +
-                '" berhasil ditambahkan sebagai ' +
-                newStatus +
-                '.'
-              );
-
-            showAdminAddLoginMessage(
-              successMessage,
-              'success'
-            );
-
-            showMessage(
-              'adminSettingsMessage',
-              successMessage,
-              'success'
-            );
-
-            /*
-             * Sinkronkan daftar staff / dropdown setelah insert.
-             */
-            setTimeout(function () {
-              refreshDashboard(false);
-            }, 250);
-          } catch (error) {
-            console.error(
-              'Gagal memproses hasil tambah akun:',
-              error
-            );
-
-            showAdminAddLoginMessage(
-              'Akun mungkin sudah diproses server, tetapi respons gagal dibaca. Tekan SEGARKAN untuk memastikan.',
-              'warning'
-            );
-          } finally {
-            setAdminAddLoginBusy(false);
-          }
+          adminRefreshSuccess(
+            result,
+            'Data login berhasil ditambahkan.'
+          );
         })
         .withFailureHandler(function (error) {
-          setAdminAddLoginBusy(false);
-
-          const message =
-            getAdminAddLoginErrorMessage(
-              error
-            );
-
-          showAdminAddLoginMessage(
-            message,
-            'error'
-          );
-
-          showMessage(
-            'adminSettingsMessage',
-            message,
-            'error'
+          handleServerError(
+            error,
+            'adminSettingsMessage'
           );
         })
         .adminTambahLogin(payload);
@@ -10591,263 +8716,218 @@
 
     function adminDeleteLogin() {
       const select =
-        document.getElementById('adminDeleteLoginSelect');
+        document.getElementById(
+          'adminDeleteLoginSelect'
+        );
 
-      if (!select || !select.value) {
-        showAdminActionMessage(
-          'adminDeleteLoginMessage',
+      if (
+        !select ||
+        !select.value
+      ) {
+        showMessage(
+          'adminSettingsMessage',
           'Pilih staff yang akan dihapus.',
           'warning'
         );
+
         return;
       }
 
       const selectedName =
-        select.options[select.selectedIndex]
-          ? String(select.options[select.selectedIndex].textContent || '').trim()
-          : select.value;
+        select.options[
+          select.selectedIndex
+        ]
+          ? select.options[
+              select.selectedIndex
+            ].textContent
+          : 'staff';
 
       if (
         !window.confirm(
           'Hapus data login ' +
           selectedName +
-          '?\n\nAkun akan dihapus dari STAFF, tetapi riwayat izin tetap disimpan.'
+          '?\n\n' +
+          'Akun akan dihapus dari STAFF, tetapi riwayat izin tetap disimpan.'
         )
       ) {
         return;
       }
 
-      runAdminAction(
-        'adminHapusLogin',
+      const payload =
         Object.assign(
           getAdminPayload(),
-          { targetUsername: select.value }
-        ),
-        {
-          buttonId: 'adminDeleteLoginButton',
-          messageId: 'adminDeleteLoginMessage',
-          processingText: 'Menghapus akun ' + selectedName + '...',
-          busyButtonText: 'MENGHAPUS...',
-          successText: 'Data login berhasil dihapus.'
-        }
+          {
+            targetUsername:
+              select.value
+          }
+        );
+
+      setLoading(
+        true
       );
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Data login berhasil dihapus.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminHapusLogin(
+          payload
+        );
     }
 
 
     function adminChangeRole() {
-      const userSelect =
-        document.getElementById('adminRoleUserSelect');
-      const roleSelect =
-        document.getElementById('adminRoleStatusSelect');
-
-      const targetUsername =
-        String(userSelect ? userSelect.value : '').trim();
-      const newStatus =
-        String(roleSelect ? roleSelect.value : '').trim();
-
-      if (!targetUsername) {
-        showAdminActionMessage(
-          'adminRoleMessage',
-          'Pilih staff yang akan diubah jabatannya.',
-          'warning'
-        );
-        return;
-      }
-
-      if (!newStatus) {
-        showAdminActionMessage(
-          'adminRoleMessage',
-          'Pilih jabatan baru.',
-          'warning'
-        );
-        return;
-      }
-
-      const displayName =
-        userSelect && userSelect.options[userSelect.selectedIndex]
-          ? String(userSelect.options[userSelect.selectedIndex].textContent || '').trim()
-          : targetUsername;
-
-      runAdminAction(
-        'adminSetJabatan',
+      const payload =
         Object.assign(
           getAdminPayload(),
           {
-            targetUsername: targetUsername,
-            newStatus: newStatus
+            targetUsername:
+              document.getElementById(
+                'adminRoleUserSelect'
+              ).value,
+
+            newStatus:
+              document.getElementById(
+                'adminRoleStatusSelect'
+              ).value
           }
-        ),
-        {
-          buttonId: 'adminRoleSaveButton',
-          messageId: 'adminRoleMessage',
-          processingText:
-            'Mengubah jabatan ' + displayName + ' menjadi ' + newStatus + '...',
-          busyButtonText: 'MENYIMPAN...',
-          successText: 'Jabatan berhasil diperbarui.'
-        }
-      );
+        );
+
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Jabatan berhasil diperbarui.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminSetJabatan(payload);
     }
 
 
     function adminGrantOverride() {
-      const select =
-        document.getElementById('adminOverrideUserSelect');
-
+      const select = document.getElementById('adminOverrideUserSelect');
       if (!select || !select.value) {
-        showAdminActionMessage(
-          'adminOverrideMessage',
-          'Pilih staff yang akan diberikan override.',
-          'warning'
-        );
+        showMessage('adminSettingsMessage', 'Pilih staff yang akan diberikan override.', 'warning');
         return;
       }
 
-      const name =
-        select.options[select.selectedIndex]
-          ? String(select.options[select.selectedIndex].textContent || '').trim()
-          : select.value;
+      const payload = Object.assign(getAdminPayload(), {targetUsername: select.value});
+      setLoading(true);
 
-      runAdminAction(
-        'adminSetOverride',
-        Object.assign(
-          getAdminPayload(),
-          { targetUsername: select.value }
-        ),
-        {
-          buttonId: 'adminGrantOverrideButton',
-          messageId: 'adminOverrideMessage',
-          processingText: 'Memberikan override shift kepada ' + name + '...',
-          busyButtonText: 'MENGIZINKAN...',
-          successText: 'Override darurat berhasil diberikan.'
-        }
-      );
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override darurat berhasil diberikan.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminSetOverride(payload);
     }
 
-
     function adminRemoveOverride() {
-      const select =
-        document.getElementById('adminOverrideActiveSelect');
-      const option =
-        select && select.options[select.selectedIndex];
-
+      const select = document.getElementById('adminOverrideActiveSelect');
+      const option = select && select.options[select.selectedIndex];
       if (!select || !select.value || !option) {
-        showAdminActionMessage(
-          'adminOverrideMessage',
-          'Pilih override aktif yang akan dihapus.',
-          'warning'
-        );
+        showMessage('adminSettingsMessage', 'Pilih override aktif yang akan dihapus.', 'warning');
         return;
       }
 
-      runAdminAction(
-        'adminHapusOverride',
+      const payload = Object.assign(getAdminPayload(), {
+        rowNumber: Number(select.value),
+        targetUsername: option.dataset.username || ''
+      });
+
+      setLoading(true);
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Override berhasil dihapus.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminHapusOverride(payload);
+    }
+
+    function adminEnableArchive() {
+      setLoading(true);
+      google.script.run
+        .withSuccessHandler(function (result) { adminRefreshSuccess(result, 'Arsip otomatis berhasil diaktifkan.'); })
+        .withFailureHandler(function (error) { handleServerError(error, 'adminSettingsMessage'); })
+        .adminAktifkanArsip(getAdminPayload());
+    }
+
+    function adminSaveDailyLimit() {
+      const payload =
         Object.assign(
           getAdminPayload(),
           {
-            rowNumber: Number(select.value),
-            targetUsername: option.dataset.username || ''
+            batasHarian:
+              Number(
+                document.getElementById(
+                  'adminDailyLimitInput'
+                ).value
+              )
           }
-        ),
-        {
-          buttonId: 'adminRemoveOverrideButton',
-          messageId: 'adminOverrideMessage',
-          processingText: 'Menghapus override aktif...',
-          busyButtonText: 'MENGHAPUS...',
-          successText: 'Override berhasil dihapus.'
-        }
-      );
-    }
-
-
-    function adminEnableArchive() {
-      runAdminAction(
-        'adminAktifkanArsip',
-        getAdminPayload(),
-        {
-          buttonId: 'archiveSetupButton',
-          messageId: 'adminArchiveMessage',
-          processingText: 'Mengaktifkan arsip otomatis...',
-          busyButtonText: 'MENGAKTIFKAN...',
-          successText: 'Arsip otomatis berhasil diaktifkan.'
-        }
-      );
-    }
-
-
-    function adminSaveDailyLimit() {
-      const input =
-        document.getElementById('adminDailyLimitInput');
-      const value =
-        Number(input ? input.value : NaN);
-
-      if (
-        !Number.isFinite(value) ||
-        value < 0 ||
-        Math.floor(value) !== value
-      ) {
-        showAdminActionMessage(
-          'adminDailyLimitMessage',
-          'Total izin per shift harus angka bulat 0 atau lebih.',
-          'warning'
         );
-        if (input) input.focus();
-        return;
-      }
 
-      runAdminAction(
-        'adminSetBatasHarian',
-        Object.assign(
-          getAdminPayload(),
-          { batasHarian: value }
-        ),
-        {
-          buttonId: 'adminDailyLimitSaveButton',
-          messageId: 'adminDailyLimitMessage',
-          processingText: 'Menyimpan total izin per shift...',
-          busyButtonText: 'MENYIMPAN...',
-          successText:
-            value === 0
-              ? 'Total izin per shift diubah menjadi tanpa batas.'
-              : 'Total izin per shift berhasil diubah menjadi ' + value + ' kali.'
-        }
-      );
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Total izin per shift berhasil diperbarui.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminSetBatasHarian(payload);
     }
 
 
     function adminSaveDuration() {
-      const input =
-        document.getElementById('adminDurationInput');
-      const value =
-        Number(input ? input.value : NaN);
-
-      if (
-        !Number.isFinite(value) ||
-        value < 1 ||
-        Math.floor(value) !== value
-      ) {
-        showAdminActionMessage(
-          'adminDurationMessage',
-          'Durasi izin harus angka bulat minimal 1 menit.',
-          'warning'
-        );
-        if (input) input.focus();
-        return;
-      }
-
-      runAdminAction(
-        'adminSetDurasi',
+      const payload =
         Object.assign(
           getAdminPayload(),
-          { batasMenit: value }
-        ),
-        {
-          buttonId: 'adminDurationSaveButton',
-          messageId: 'adminDurationMessage',
-          processingText: 'Menyimpan durasi izin...',
-          busyButtonText: 'MENYIMPAN...',
-          successText: 'Durasi izin berhasil diubah menjadi ' + value + ' menit.'
-        }
-      );
+          {
+            batasMenit:
+              Number(
+                document.getElementById(
+                  'adminDurationInput'
+                ).value
+              )
+          }
+        );
+
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          adminRefreshSuccess(
+            result,
+            'Durasi izin berhasil diperbarui.'
+          );
+        })
+        .withFailureHandler(function (error) {
+          handleServerError(
+            error,
+            'adminSettingsMessage'
+          );
+        })
+        .adminSetDurasi(payload);
     }
 
 
@@ -10901,11 +8981,8 @@
           const deadline =
             Number(element.dataset.deadline);
 
-          const lateDeadline =
-            deadline + 60 * 1000;
-
           const difference =
-            lateDeadline - Date.now();
+            deadline - Date.now();
 
           element.textContent =
             formatCountdown(difference);
@@ -10946,15 +9023,8 @@
           countdown.textContent =
             formatElapsedDuration(elapsed);
 
-          const late =
-            isPermissionLateAt(
-              ownActive,
-              dashboardData.current.batasMenit,
-              Date.now()
-            );
-
           countdown.style.color =
-            late
+            difference < 0
               ? '#ff809d'
               : '#55ffc1';
         }
@@ -10967,11 +9037,7 @@
 
         if (statusBox && statusText) {
           const late =
-            isPermissionLateAt(
-              ownActive,
-              dashboardData.current.batasMenit,
-              Date.now()
-            );
+            difference < 0;
 
           statusBox.className =
             'permission-status ' +
@@ -10983,8 +9049,6 @@
               : 'Status: Izin Sedang Berjalan';
         }
       }
-
-      updateHistoryLateIndicators();
     }
 
     function getPermissionStartMs(
@@ -11028,612 +9092,6 @@
       }
 
       return Date.now();
-    }
-
-
-
-    /*
-     * TELAT DIMULAI DI MENIT KE-21.
-     * Contoh batas 20 menit:
-     * 00:00 - 20:59 = AMAN
-     * 21:00 dan seterusnya = TELAT
-     */
-    function getPermissionLateThresholdMs(
-      permission,
-      limitMinutes
-    ) {
-      const startMs =
-        getPermissionStartMs(
-          permission,
-          limitMinutes
-        );
-
-      const limit =
-        Math.max(
-          0,
-          Number(limitMinutes || 0)
-        );
-
-      return (
-        startMs +
-        (limit + 1) * 60 * 1000
-      );
-    }
-
-
-    function isPermissionLateAt(
-      permission,
-      limitMinutes,
-      nowMs
-    ) {
-      if (!permission) {
-        return false;
-      }
-
-      const now =
-        Number.isFinite(Number(nowMs))
-          ? Number(nowMs)
-          : Date.now();
-
-      return (
-        now >=
-        getPermissionLateThresholdMs(
-          permission,
-          limitMinutes
-        )
-      );
-    }
-
-
-    function isPermissionStillOut(row) {
-      const jamKembali =
-        String(
-          row &&
-          row.jamKembali !== undefined &&
-          row.jamKembali !== null
-            ? row.jamKembali
-            : ''
-        )
-          .trim()
-          .toUpperCase();
-
-      return (
-        !jamKembali ||
-        jamKembali === '-' ||
-        jamKembali === 'BELUM MASUK' ||
-        jamKembali === 'BELUM KEMBALI' ||
-        jamKembali === 'MASIH KELUAR' ||
-        jamKembali === 'SEDANG KELUAR'
-      );
-    }
-
-
-    function normalizeReturnClock(value) {
-      const text =
-        String(
-          value !== undefined &&
-          value !== null
-            ? value
-            : ''
-        ).trim();
-
-      return (
-        !text ||
-        text === '-'
-      )
-        ? '-'
-        : formatClockDisplay(text);
-    }
-
-
-    function parseDurationToMs(value) {
-      const text =
-        String(
-          value !== undefined &&
-          value !== null
-            ? value
-            : ''
-        )
-          .trim()
-          .toLowerCase();
-
-      if (
-        !text ||
-        text === '-'
-      ) {
-        return null;
-      }
-
-      /*
-       * Format utama aplikasi:
-       * MM:SS
-       * atau HH:MM:SS jika suatu saat backend mengirim jam.
-       */
-      let match =
-        text.match(
-          /^(\d+):(\d{2})(?::(\d{2}))?$/
-        );
-
-      if (match) {
-        if (match[3] !== undefined) {
-          const hours =
-            Number(match[1] || 0);
-
-          const minutes =
-            Number(match[2] || 0);
-
-          const seconds =
-            Number(match[3] || 0);
-
-          return (
-            (
-              hours * 3600 +
-              minutes * 60 +
-              seconds
-            ) * 1000
-          );
-        }
-
-        const minutes =
-          Number(match[1] || 0);
-
-        const seconds =
-          Number(match[2] || 0);
-
-        return (
-          (
-            minutes * 60 +
-            seconds
-          ) * 1000
-        );
-      }
-
-      /*
-       * Fallback jika backend memakai teks:
-       * "21 menit 5 detik", "1 jam 2 menit", dll.
-       */
-      const hoursMatch =
-        text.match(
-          /(\d+)\s*(?:jam|hour|hours)/
-        );
-
-      const minutesMatch =
-        text.match(
-          /(\d+)\s*(?:menit|minute|minutes|min)/
-        );
-
-      const secondsMatch =
-        text.match(
-          /(\d+)\s*(?:detik|second|seconds|sec)/
-        );
-
-      if (
-        hoursMatch ||
-        minutesMatch ||
-        secondsMatch
-      ) {
-        const hours =
-          hoursMatch
-            ? Number(hoursMatch[1] || 0)
-            : 0;
-
-        const minutes =
-          minutesMatch
-            ? Number(minutesMatch[1] || 0)
-            : 0;
-
-        const seconds =
-          secondsMatch
-            ? Number(secondsMatch[1] || 0)
-            : 0;
-
-        return (
-          (
-            hours * 3600 +
-            minutes * 60 +
-            seconds
-          ) * 1000
-        );
-      }
-
-      return null;
-    }
-
-
-    function normalizeCompletedPermissionResult(
-      result,
-      duration,
-      limitMinutes
-    ) {
-      const durationMs =
-        parseDurationToMs(
-          duration
-        );
-
-      const limit =
-        Math.max(
-          0,
-          Number(limitMinutes || 0)
-        );
-
-      if (
-        durationMs !== null
-      ) {
-        return (
-          durationMs >=
-          (limit + 1) * 60 * 1000
-        )
-          ? 'TELAT'
-          : 'AMAN';
-      }
-
-      return (
-        String(result || '')
-          .trim()
-          .toUpperCase() === 'TELAT'
-      )
-        ? 'TELAT'
-        : 'AMAN';
-    }
-
-
-    function getWibDateParts(nowMs) {
-      const parts =
-        new Intl.DateTimeFormat(
-          'en-CA',
-          {
-            timeZone: TZ,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          }
-        ).formatToParts(
-          new Date(
-            Number(nowMs || Date.now())
-          )
-        );
-
-      const map = {};
-
-      parts.forEach(function (part) {
-        if (
-          part.type !== 'literal'
-        ) {
-          map[part.type] =
-            Number(part.value);
-        }
-      });
-
-      return {
-        year: map.year,
-        month: map.month,
-        day: map.day
-      };
-    }
-
-
-    function getHistoryRowStartMs(
-      row,
-      forcePreviousDay
-    ) {
-      const direct =
-        Number(
-          row &&
-          row.startMs
-        );
-
-      if (
-        Number.isFinite(direct) &&
-        direct > 0
-      ) {
-        return direct;
-      }
-
-      const clock =
-        formatClockDisplay(
-          row &&
-          row.jamKeluar
-        );
-
-      const match =
-        String(clock || '')
-          .match(
-            /^(\d{2}):(\d{2}):(\d{2})$/
-          );
-
-      if (!match) {
-        return 0;
-      }
-
-      const now =
-        Date.now();
-
-      const parts =
-        getWibDateParts(now);
-
-      /*
-       * WIB = UTC+7.
-       * Date.UTC(..., hour - 7, ...) mengubah jam WIB
-       * menjadi epoch UTC yang benar tanpa tergantung zona browser.
-       */
-      let candidate =
-        Date.UTC(
-          parts.year,
-          parts.month - 1,
-          parts.day,
-          Number(match[1]) - 7,
-          Number(match[2]),
-          Number(match[3])
-        );
-
-      if (forcePreviousDay) {
-        candidate -=
-          24 * 60 * 60 * 1000;
-      } else if (
-        candidate >
-        now + 5 * 60 * 1000
-      ) {
-        /*
-         * Shift yang melewati tengah malam:
-         * bila jam keluar terlihat "lebih besar" dari jam sekarang,
-         * anggap START terjadi pada tanggal sebelumnya.
-         */
-        candidate -=
-          24 * 60 * 60 * 1000;
-      }
-
-      return candidate;
-    }
-
-
-    function getHistoryRowView(
-      row,
-      forcePreviousDay
-    ) {
-      const current =
-        dashboardData &&
-        dashboardData.current
-          ? dashboardData.current
-          : {};
-
-      const limitMinutes =
-        Math.max(
-          0,
-          Number(current.batasMenit || 0)
-        );
-
-      const active =
-        isPermissionStillOut(row);
-
-      const startMs =
-        getHistoryRowStartMs(
-          row,
-          Boolean(forcePreviousDay)
-        );
-
-      let result;
-      let late = false;
-
-      if (active) {
-        /*
-         * WAJIB:
-         * selama belum END / belum ada jam kembali,
-         * HASIL selalu SEDANG KELUAR.
-         */
-        result =
-          'SEDANG KELUAR';
-
-        if (
-          startMs > 0
-        ) {
-          late =
-            Date.now() >=
-            startMs +
-            (limitMinutes + 1) *
-              60 *
-              1000;
-        } else {
-          /*
-           * Fallback terakhir jika startMs tidak tersedia.
-           * Jangan pernah mengubah HASIL aktif menjadi AMAN/TELAT;
-           * hanya efek merah mengikuti hasil backend jika memang TELAT.
-           */
-          late =
-            String(
-              row &&
-              row.hasil
-                ? row.hasil
-                : ''
-            )
-              .trim()
-              .toUpperCase() ===
-            'TELAT';
-        }
-      } else {
-        result =
-          normalizeCompletedPermissionResult(
-            row &&
-            row.hasil,
-            row &&
-            row.durasi,
-            limitMinutes
-          );
-
-        late =
-          result === 'TELAT';
-      }
-
-      return {
-        active: active,
-        result: result,
-        late: late,
-        startMs: startMs,
-        limitMinutes: limitMinutes
-      };
-    }
-
-
-    function normalizeHistoryDuration(
-      row,
-      view
-    ) {
-      if (
-        view &&
-        view.active
-      ) {
-        if (
-          Number(view.startMs || 0) > 0
-        ) {
-          return formatElapsedDuration(
-            Math.max(
-              0,
-              Date.now() -
-              Number(view.startMs)
-            )
-          );
-        }
-
-        const existing =
-          String(
-            row &&
-            row.durasi !== undefined &&
-            row.durasi !== null
-              ? row.durasi
-              : ''
-          ).trim();
-
-        return (
-          existing &&
-          existing !== '-'
-        )
-          ? existing
-          : '00:00';
-      }
-
-      const duration =
-        String(
-          row &&
-          row.durasi !== undefined &&
-          row.durasi !== null
-            ? row.durasi
-            : ''
-        ).trim();
-
-      return duration || '-';
-    }
-
-
-    function countNormalizedHistoryResults(
-      rows,
-      forcePreviousDay
-    ) {
-      const result = {
-        aman: 0,
-        telat: 0,
-        sedangKeluar: 0
-      };
-
-      (rows || [])
-        .forEach(function (row) {
-          const view =
-            getHistoryRowView(
-              row,
-              Boolean(forcePreviousDay)
-            );
-
-          if (
-            view.result === 'TELAT'
-          ) {
-            result.telat += 1;
-          } else if (
-            view.result === 'AMAN'
-          ) {
-            result.aman += 1;
-          } else {
-            result.sedangKeluar += 1;
-          }
-        });
-
-      return result;
-    }
-
-
-    function updateHistoryLateIndicators() {
-      const current =
-        dashboardData &&
-        dashboardData.current
-          ? dashboardData.current
-          : {};
-
-      const limitMinutes =
-        Math.max(
-          0,
-          Number(current.batasMenit || 0)
-        );
-
-      const lateAfterMs =
-        (limitMinutes + 1) *
-        60 *
-        1000;
-
-      document
-        .querySelectorAll(
-          '[data-history-row="1"][data-history-active="1"]'
-        )
-        .forEach(function (row) {
-          const startMs =
-            Number(
-              row.dataset.historyStartMs || 0
-            );
-
-          if (
-            !Number.isFinite(startMs) ||
-            startMs <= 0
-          ) {
-            return;
-          }
-
-          const isLate =
-            Date.now() - startMs >=
-            lateAfterMs;
-
-          row.classList.toggle(
-            'permission-late-row',
-            isLate
-          );
-
-          const resultCell =
-            row.querySelector(
-              '[data-history-result-cell="1"]'
-            );
-
-          if (resultCell) {
-            resultCell.classList.toggle(
-              'late-blink-cell',
-              isLate
-            );
-          }
-
-          /*
-           * Durasi aktif juga diperbarui ringan setiap detik
-           * tanpa render ulang seluruh tabel / tanpa request server baru.
-           */
-          const durationCell =
-            row.children &&
-            row.children.length >= 6
-              ? row.children[5]
-              : null;
-
-          if (durationCell) {
-            durationCell.textContent =
-              formatElapsedDuration(
-                Math.max(
-                  0,
-                  Date.now() - startMs
-                )
-              );
-          }
-        });
     }
 
 
@@ -11811,35 +9269,9 @@
       ).toUpperCase();
     }
 
-    function resultBadge(
-      result,
-      permissionSequence
-    ) {
-      const normalized =
-        String(result || '')
-          .trim()
-          .toUpperCase();
-
-      if (
-        normalized ===
-        'SEDANG KELUAR'
-      ) {
-        const sequence =
-          Math.max(
-            1,
-            Number(permissionSequence || 1)
-          );
-
-        return (
-          '<span class="badge running">' +
-          'SEDANG KELUAR KE-' +
-          sequence +
-          '</span>'
-        );
-      }
-
+    function resultBadge(result) {
       const late =
-        normalized === 'TELAT';
+        String(result || '').toUpperCase() === 'TELAT';
 
       return (
         '<span class="badge ' +
@@ -12013,351 +9445,14 @@
       setLoading(false);
     }
 
-    function setLoginButtonBusy(busy) {
-      const button =
-        document.getElementById(
-          'loginButton'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.disabled =
-        Boolean(busy);
-
-      if (busy) {
-        button.innerHTML =
-          '<span class="btn-mini-spinner"></span>' +
-          'MEMPROSES...';
-      } else {
-        button.textContent =
-          'MASUK';
-      }
-    }
-
-
-    function scheduleFastLoadingHide(delay) {
-      if (fastLoadingTimer) {
-        clearTimeout(
-          fastLoadingTimer
-        );
-      }
-
-      fastLoadingTimer =
-        setTimeout(function () {
-          const loading =
-            document.getElementById(
-              'loading'
-            );
-
-          if (loading && isProcessing) {
-            loading.classList.add(
-              'quick-hide'
-            );
-          }
-
-          fastLoadingTimer = null;
-        }, Math.max(0, Number(delay) || 0));
-    }
-
-
-    function setLoadingContent(title, text) {
-      const titleElement =
-        document.getElementById('loadingTitle');
-
-      const textElement =
-        document.getElementById('loadingText');
-
-      if (titleElement) {
-        titleElement.textContent =
-          title || 'MEMPROSES';
-      }
-
-      if (textElement) {
-        textElement.textContent =
-          text || 'Sinkronisasi data...';
-      }
-    }
-
-
-    function resetLoadingVisualState() {
-      const loading =
-        document.getElementById('loading');
-
-      if (!loading) {
-        return;
-      }
-
-      loading.classList.remove(
-        'quick-hide',
-        'permission-action',
-        'mode-start',
-        'mode-end'
-      );
-    }
-
-
-    function setPermissionActionButtonBusy(mode, busy) {
-      const button =
-        document.getElementById(
-          mode === 'end'
-            ? 'endButton'
-            : 'startButton'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.classList.toggle(
-        'action-busy',
-        Boolean(busy)
-      );
-
-      button.classList.remove(
-        'action-queued'
-      );
-
-      if (busy) {
-        button.disabled = true;
-        button.innerHTML =
-          '<span class="btn-mini-spinner"></span>' +
-          (mode === 'end'
-            ? 'MEMPROSES END'
-            : 'MEMPROSES START');
-        return;
-      }
-
-      if (mode === 'end') {
-        button.innerHTML =
-          '■ &nbsp; END';
-      } else {
-        button.innerHTML =
-          '▶ &nbsp; START';
-      }
-    }
-
-
-    function setPermissionActionButtonQueued(mode) {
-      const button =
-        document.getElementById(
-          mode === 'end'
-            ? 'endButton'
-            : 'startButton'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      button.classList.remove(
-        'action-busy'
-      );
-
-      button.classList.add(
-        'action-queued'
-      );
-
-      button.disabled = true;
-      button.innerHTML =
-        mode === 'end'
-          ? '✓ &nbsp; END TERKIRIM'
-          : '✓ &nbsp; START TERKIRIM';
-    }
-
-
-    function beginPermissionActionLoading(
-      mode,
-      actionToken
-    ) {
-      if (
-        actionToken !== undefined &&
-        !isCurrentPermissionAction(actionToken)
-      ) {
-        return;
-      }
-
-      const loading =
-        document.getElementById('loading');
-
-      if (!loading) {
-        setLoading(true);
-        return;
-      }
-
-      if (permissionLoadingTimer) {
-        clearTimeout(
-          permissionLoadingTimer
-        );
-
-        permissionLoadingTimer = null;
-      }
-
-      permissionLoadingMode =
-        mode === 'end'
-          ? 'end'
-          : 'start';
-
-      isProcessing = true;
-
-      resetLoadingVisualState();
-
-      loading.classList.add(
-        'permission-action',
-        permissionLoadingMode === 'end'
-          ? 'mode-end'
-          : 'mode-start',
-        'show'
-      );
-
-      setLoadingContent(
-        permissionLoadingMode === 'end'
-          ? 'MENYELESAIKAN IZIN'
-          : 'MENCATAT START',
-        permissionLoadingMode === 'end'
-          ? 'Menyimpan jam kembali...'
-          : 'Menyimpan jam keluar...'
-      );
-
-      /*
-       * Tombol langsung memberi feedback.
-       * Tidak ada setTimeout sebelum google.script.run:
-       * request server tetap dikirim secepat mungkin.
-       */
-      updateActionButtons();
-
-      setPermissionActionButtonBusy(
-        permissionLoadingMode,
-        true
-      );
-
-      /*
-       * Fullscreen loader dibatasi 260 ms.
-       * Setelah itu status optimistis sudah tampil dan tombol berubah
-       * menjadi TERKIRIM, sementara server menyelesaikan sinkronisasi.
-       */
-      permissionLoadingTimer =
-        setTimeout(function () {
-          if (
-            !permissionActionInFlight ||
-            permissionLoadingMode !== mode
-          ) {
-            return;
-          }
-
-          loading.classList.add(
-            'quick-hide'
-          );
-
-          setPermissionActionButtonQueued(
-            permissionLoadingMode
-          );
-
-          window.setTimeout(
-            function () {
-              if (
-                permissionActionInFlight &&
-                permissionLoadingMode === mode
-              ) {
-                loading.classList.remove(
-                  'show'
-                );
-              }
-            },
-            150
-          );
-        }, PERMISSION_FULLSCREEN_LOADING_MS);
-    }
-
-
-    function finishPermissionActionLoading(
-      mode,
-      actionToken
-    ) {
-      if (
-        actionToken !== undefined &&
-        !isCurrentPermissionAction(actionToken)
-      ) {
-        return;
-      }
-
-      if (permissionLoadingTimer) {
-        clearTimeout(
-          permissionLoadingTimer
-        );
-
-        permissionLoadingTimer = null;
-      }
-
-      const loading =
-        document.getElementById('loading');
-
-      if (loading) {
-        loading.classList.add(
-          'quick-hide'
-        );
-
-        loading.classList.remove(
-          'show'
-        );
-
-        resetLoadingVisualState();
-      }
-
-      setPermissionActionButtonBusy(
-        mode,
-        false
-      );
-
-      permissionLoadingMode = '';
-      isProcessing = false;
-
-      setLoadingContent(
-        'MEMPROSES',
-        'Sinkronisasi data...'
-      );
-
-      updateActionButtons();
-    }
-
-
     function setLoading(show) {
       isProcessing =
         Boolean(show);
 
-      if (fastLoadingTimer) {
-        clearTimeout(
-          fastLoadingTimer
-        );
-
-        fastLoadingTimer = null;
-      }
-
-      const loading =
-        document.getElementById('loading');
-
-      if (loading) {
-        if (isProcessing) {
-          resetLoadingVisualState();
-
-          setLoadingContent(
-            'MEMPROSES',
-            'Sinkronisasi data...'
-          );
-
-          loading.classList.add(
-            'show'
-          );
-        } else {
-          loading.classList.remove(
-            'show',
-            'quick-hide'
-          );
-
-          resetLoadingVisualState();
-        }
-      }
+      document
+        .getElementById('loading')
+        .classList
+        .toggle('show', isProcessing);
 
       if (!isProcessing) {
         updateActionButtons();
