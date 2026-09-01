@@ -6743,6 +6743,97 @@
     }
 
 
+    /**
+     * Terapkan hasil START / END secara lokal agar UI langsung berubah
+     * setelah loading ditutup. Dashboard authoritative tetap disinkronkan
+     * beberapa ratus milidetik kemudian melalui polling realtime.
+     */
+    function applyPermissionActionLocally(result) {
+      if (!result || result.ok === false) {
+        return;
+      }
+
+      if (result.dashboard) {
+        renderDashboard(result.dashboard);
+        return;
+      }
+
+      const action = result.action || null;
+
+      if (!action || !dashboardData || !dashboardData.current) {
+        return;
+      }
+
+      const committedMs =
+        Number(action.committedMs || Date.now());
+
+      if (String(action.kind || '').toUpperCase() === 'START') {
+        const active = {
+          username: action.username || (currentUser ? currentUser.username : ''),
+          nama: action.nama || (currentUser ? currentUser.nama : ''),
+          status: action.status || (currentUser ? currentUser.status : ''),
+          jamKeluar: action.jamKeluar || '-',
+          batasKembali: action.batasKembali || '-',
+          startMs: Number(action.startMs || committedMs),
+          deadlineMs: Number(action.deadlineMs || 0),
+          hasil: 'AMAN'
+        };
+
+        dashboardData.current.ownActive = active;
+        dashboardData.current.lastPermission = {
+          jamKeluar: active.jamKeluar,
+          tanggal: getTodayDateText()
+        };
+
+        dashboardData.current.ownShiftCount =
+          Number(dashboardData.current.ownShiftCount || 0) + 1;
+
+        dashboardData.current.ownTodayCount =
+          Number(dashboardData.current.ownTodayCount || 0) + 1;
+
+        dashboardData.current.activeSameRole =
+          Number(dashboardData.current.activeSameRole || 0) + 1;
+
+        const existingActive = Array.isArray(dashboardData.active)
+          ? dashboardData.active.filter(function (row) {
+              return String(row.username || '').toLowerCase() !==
+                String(active.username || '').toLowerCase();
+            })
+          : [];
+
+        existingActive.push(active);
+        dashboardData.active = existingActive;
+      } else if (String(action.kind || '').toUpperCase() === 'END') {
+        const username = currentUser ? currentUser.username : action.username;
+
+        dashboardData.current.ownActive = null;
+        dashboardData.current.activeSameRole = Math.max(
+          0,
+          Number(dashboardData.current.activeSameRole || 0) - 1
+        );
+
+        if (Array.isArray(dashboardData.active)) {
+          dashboardData.active = dashboardData.active.filter(function (row) {
+            return String(row.username || '').toLowerCase() !==
+              String(username || '').toLowerCase();
+          });
+        }
+      }
+
+      dashboardData.generatedMs = Math.max(
+        committedMs,
+        Number(dashboardData.generatedMs || 0)
+      );
+
+      lastDashboardGeneratedMs = Math.max(
+        lastDashboardGeneratedMs,
+        committedMs
+      );
+
+      renderDashboard(dashboardData);
+    }
+
+
     function startPermission() {
       const current = dashboardData && dashboardData.current ? dashboardData.current : {};
 
@@ -6777,31 +6868,44 @@
 
       google.script.run
         .withSuccessHandler(function (result) {
-          try {
-            showMessage('appMessage', result.message, result.type || (result.ok === false ? 'warning' : 'success'));
-            renderDashboard(result.dashboard);
+          /*
+           * Loading ditutup TERLEBIH DAHULU.
+           * Baru sesudah itu timer/status START ditampilkan.
+           */
+          setLoading(false);
 
-            if (result.ok !== false) {
-              const ownActive = result.dashboard && result.dashboard.current ? result.dashboard.current.ownActive : null;
+          try {
+            showMessage(
+              'appMessage',
+              result.message,
+              result.type || (result.ok === false ? 'warning' : 'success')
+            );
+
+            applyPermissionActionLocally(result);
+
+            if (result.ok !== false && !result.duplicate) {
+              const action = result.action || {};
+
               showActionPopup('start', {
-                jamKeluar: ownActive ? ownActive.jamKeluar : '-',
-                batasKembali: ownActive ? ownActive.batasKembali : '-'
+                jamKeluar: action.jamKeluar || '-',
+                batasKembali: action.batasKembali || '-'
               });
             }
           } catch (error) {
-            console.error('Gagal memperbarui dashboard:', error);
-            showMessage('appMessage', 'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.', 'warning');
+            console.error('Gagal memperbarui tampilan START:', error);
+            showMessage(
+              'appMessage',
+              'START berhasil diproses. Data akan disinkronkan otomatis.',
+              'warning'
+            );
           } finally {
-            permissionActionInFlight =
-              false;
+            permissionActionInFlight = false;
+            updateActionButtons();
 
-            setLoading(
-              false
-            );
-
-            scheduleNextLiveRefresh(
-              800
-            );
+            /*
+             * Sinkronisasi authoritative berjalan sesudah UI sudah siap.
+             */
+            scheduleNextLiveRefresh(250);
           }
         })
         .withFailureHandler(function (error) {
@@ -6849,6 +6953,8 @@
 
       google.script.run
         .withSuccessHandler(function (result) {
+          setLoading(false);
+
           try {
             showMessage(
               'appMessage',
@@ -6856,56 +6962,35 @@
               result.type || (result.ok === false ? 'warning' : 'success')
             );
 
-            renderDashboard(result.dashboard);
+            applyPermissionActionLocally(result);
 
-            if (result.ok !== false) {
-              const latestRecord =
-                getLatestOwnTodayRecord(
-                  result.dashboard
-                );
+            if (result.ok !== false && !result.duplicate) {
+              const action = result.action || {};
 
               showActionPopup(
                 'end',
                 {
-                  jamKembali:
-                    latestRecord
-                      ? latestRecord.jamKembali
-                      : '-',
-
-                  durasi:
-                    latestRecord
-                      ? latestRecord.durasi
-                      : '-',
-
-                  hasil:
-                    latestRecord
-                      ? latestRecord.hasil
-                      : 'AMAN'
+                  jamKembali: action.jamKembali || '-',
+                  durasi: action.durasi || '-',
+                  hasil: action.hasil || 'AMAN'
                 }
               );
             }
           } catch (error) {
             console.error(
-              'Gagal memperbarui dashboard:',
+              'Gagal memperbarui tampilan END:',
               error
             );
 
             showMessage(
               'appMessage',
-              'Data berhasil diproses, tetapi tampilan gagal diperbarui. Silakan refresh halaman.',
+              'END berhasil diproses. Data akan disinkronkan otomatis.',
               'warning'
             );
           } finally {
-            permissionActionInFlight =
-              false;
-
-            setLoading(
-              false
-            );
-
-            scheduleNextLiveRefresh(
-              800
-            );
+            permissionActionInFlight = false;
+            updateActionButtons();
+            scheduleNextLiveRefresh(250);
           }
         })
         .withFailureHandler(function (error) {
