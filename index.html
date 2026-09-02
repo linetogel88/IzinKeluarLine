@@ -4043,6 +4043,19 @@
     }
 
   
+
+    /* =========================================================
+       NAVIGATION COMPACT — KHUSUS SELAIN CS LINE
+       CS LINE tetap memakai 3 menu dan lebar normal.
+    ========================================================= */
+    #appView .nav-wrap.nav-compact {
+      width: min(820px, calc(100% - 22px)) !important;
+    }
+
+    #appView .nav-wrap.nav-compact .nav-tabs {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
     /* =========================================================
        NAVIGATION — TIDAK MENEMPEL SAAT SCROLL
        Menu ikut naik/hilang bersama halaman.
@@ -6628,14 +6641,33 @@
       const settingsButton =
         document.getElementById('settingsNavButton');
 
+      const hasSettingsAccess =
+        canViewSettings();
+
       if (settingsButton) {
         settingsButton.style.display =
-          canViewSettings()
+          hasSettingsAccess
             ? ''
             : 'none';
       }
 
-      if (!canViewSettings()) {
+      /*
+       * Selain CS LINE hanya memiliki 2 menu.
+       * Menu dibuat lebih ringkas dan tetap center.
+       */
+      const navWrap =
+        document.querySelector(
+          '#appView .nav-wrap'
+        );
+
+      if (navWrap) {
+        navWrap.classList.toggle(
+          'nav-compact',
+          !hasSettingsAccess
+        );
+      }
+
+      if (!hasSettingsAccess) {
         const settingsView =
           document.getElementById('view-settings');
 
