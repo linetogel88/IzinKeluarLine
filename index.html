@@ -18,8 +18,12 @@
      */
     (function () {
       try {
+        const sessionKey =
+          'izinKeluarStaffSession';
+
         const rawSession =
-          sessionStorage.getItem('izinKeluarStaffSession');
+          localStorage.getItem(sessionKey) ||
+          sessionStorage.getItem(sessionKey);
 
         if (rawSession) {
           const savedSession =
@@ -28,15 +32,26 @@
           if (
             savedSession &&
             savedSession.username &&
-            savedSession.password
+            savedSession.password &&
+            (
+              !savedSession.expiresAt ||
+              Number(savedSession.expiresAt) > Date.now()
+            )
           ) {
             document.documentElement.classList.add(
               'restoring-session'
             );
+          } else {
+            localStorage.removeItem(sessionKey);
+            sessionStorage.removeItem(sessionKey);
           }
         }
       } catch (error) {
         try {
+          localStorage.removeItem(
+            'izinKeluarStaffSession'
+          );
+
           sessionStorage.removeItem(
             'izinKeluarStaffSession'
           );
@@ -5726,6 +5741,7 @@
   <script>
     const TZ = 'Asia/Jakarta';
     const SESSION_KEY = 'izinKeluarStaffSession';
+    const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
     let credentials = {
       username: '',
@@ -5834,7 +5850,7 @@
       sessionToken
     ) {
       try {
-        sessionStorage.setItem(
+        localStorage.setItem(
           SESSION_KEY,
           JSON.stringify({
             username:
@@ -5844,8 +5860,15 @@
               password,
 
             sessionToken:
-              sessionToken || ''
+              sessionToken || '',
+
+            expiresAt:
+              Date.now() + SESSION_MAX_AGE_MS
           })
+        );
+
+        sessionStorage.removeItem(
+          SESSION_KEY
         );
       } catch (error) {
         console.warn(
@@ -5858,6 +5881,10 @@
 
     function clearLoginSession() {
       try {
+        localStorage.removeItem(
+          SESSION_KEY
+        );
+
         sessionStorage.removeItem(
           SESSION_KEY
         );
@@ -5875,6 +5902,9 @@
 
       try {
         const raw =
+          localStorage.getItem(
+            SESSION_KEY
+          ) ||
           sessionStorage.getItem(
             SESSION_KEY
           );
@@ -5882,6 +5912,15 @@
         if (raw) {
           savedSession =
             JSON.parse(raw);
+
+          if (
+            savedSession &&
+            savedSession.expiresAt &&
+            Number(savedSession.expiresAt) <= Date.now()
+          ) {
+            clearLoginSession();
+            savedSession = null;
+          }
         }
       } catch (error) {
         clearLoginSession();
