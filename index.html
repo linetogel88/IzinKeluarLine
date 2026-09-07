@@ -9888,5 +9888,78 @@
         .replace(/'/g, '&#039;');
     }
   </script>
+
+  <script>
+    document.addEventListener('keydown', function(e) {
+      var key = (e.key || '').toLowerCase();
+
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && !e.shiftKey && (key === 'u' || e.keyCode === 85)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && !e.shiftKey && (key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === 'i' || e.keyCode === 73)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === 'j' || e.keyCode === 74)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === 'c' || e.keyCode === 67)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === 'k' || e.keyCode === 75)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (e.ctrlKey && e.shiftKey && (key === 'e' || e.keyCode === 69)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }, true);
+
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+      return false;
+    }, true);
+  </script>
 </body>
 </html>
